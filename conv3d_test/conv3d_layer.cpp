@@ -10,6 +10,7 @@ void conv3d_layer(float * mem,            // global memory pointer
                 const int ox,           // output width
                 const int oy,           // output height
                 const int oc,           // output channel
+                const int ic,           // input channel
                 const int id,           // input dimensions
                 const int ix,           // input width
                 const int iy,           // input height
@@ -57,18 +58,21 @@ void conv3d_layer(float * mem,            // global memory pointer
             float output_element = mem[input_offset/sizeof(float) + num_weights + o_d];
 
             // Weighted Sum:
-
-            // Input Dimensions (Feature Maps)
-            for (int i_d = o_d*s, iid = 0; i_d < o_d*s+k; i_d++, iid++)
+            for(int i_c = 0; i_c < ic; i_c++)
             {
-              // Input Y Dimension
-              for (int i_y = o_y*s, iiy = 0; i_y < o_y*s+k; i_y++, iiy++)
+            
+            // Input Dimensions (Feature Maps)
+              for (int i_d = o_d*s, iid = 0; i_d < o_d*s+k; i_d++, iid++)
               {
-                // Input X Dimension
-                for (int i_x = o_x*s, iix = 0; i_x < o_x*s+k; i_x++, iix++)
+                // Input Y Dimension
+                for (int i_y = o_y*s, iiy = 0; i_y < o_y*s+k; i_y++, iiy++)
                 {
-                  output_element += mem[input_offset/sizeof(float) + num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
-                                    mem[input_offset/sizeof(float) + o_c*k*k*k + iid*k*k + iiy*k + iix];
+                  // Input X Dimension
+                  for (int i_x = o_x*s, iix = 0; i_x < o_x*s+k; i_x++, iix++)
+                  {
+                    output_element += mem[input_offset/sizeof(float) + num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
+                                      mem[input_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + iid*k*k + iiy*k + iix];
+                  }
                 }
               }
             }

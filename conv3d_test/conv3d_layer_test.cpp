@@ -63,12 +63,12 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
   int num_biases = layer_params["output_dim"];
 
   // very basic input checking
-  if (layer_params["input_dim"] > CONV_MAX_INPUT_DIMS ||
-      layer_params["input_width"] > CONV_MAX_INPUT_WIDTH ||
-      layer_params["input_height"] > CONV_MAX_INPUT_WIDTH ||
-      layer_params["output_dim"] > CONV_MAX_OUTPUT_DIMS ||
-      layer_params["output_width"] > CONV_MAX_OUTPUT_WIDTH ||
-      layer_params["output_height"] > CONV_MAX_OUTPUT_WIDTH ||
+  if (layer_params["input_dim"] > MAX_INPUT_DIMS ||
+      layer_params["input_width"] > MAX_INPUT_WIDTH ||
+      layer_params["input_height"] > MAX_INPUT_WIDTH ||
+      layer_params["output_dim"] > MAX_OUTPUT_DIMS ||
+      layer_params["output_width"] > MAX_OUTPUT_WIDTH ||
+      layer_params["output_height"] > MAX_OUTPUT_WIDTH ||
       layer_params["batch_size"] > MAX_BATCH)
   {
     cerr << "Problem with layer params\n";
@@ -83,6 +83,8 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
     int iy = layer_params["input_height"];
     int k = layer_params["kernel_size"];
     int s = layer_params["stride"];
+    int oc = layer_params["output_channel"];
+    int ic = layer_params["input_channel"];
 
 #ifdef PRINT
     cout << "Begin Test\n"
@@ -99,12 +101,12 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
 
     // Run Accelerator
     #ifdef HW_TEST
-    hw_conv_layer(HW_CTRL_ADDR, dma_input, 0,
+    hw_conv3d_layer(HW_CTRL_ADDR, dma_input, 0,
                   sizeof(float)*(b*num_inputs+num_biases + num_weights),
                   b, od, ox, oy, id, ix, iy, s, k,1);
     #else
-    conv_layer(dma_input, 0, sizeof(float)*(b*num_inputs+num_biases + num_weights),
-               b, od, ox, oy, id, ix, iy, s, k);
+    conv3d_layer(dma_input, 0, sizeof(float)*(b*num_inputs+num_biases + num_weights),
+               b, od, ox, oy, oc, ic, id, ix, iy, s, k);
     #endif
 
   }
