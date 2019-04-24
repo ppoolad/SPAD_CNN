@@ -4,11 +4,11 @@
 #include <vector>
 #include <map>
 #include <string>
-#include "conv_layer.h"
+#include "conv3d_layer.h"
 #include "util/shared.h"
 #include <sstream>
 #include <chrono>
-
+//#include "constants.h"
 #define HW_CTRL_ADDR 0x00000000
 
 using namespace std;
@@ -17,10 +17,39 @@ using namespace std;
 //#define PRINT
 
 
+static int myreadFile(const string fname,
+                              float * fptr,
+                              const int read_alloc,
+                              const int max_alloc){
+
+  int retval = 0;
+  std::cout << "Reading: " << fname << " size: " << read_alloc << std::endl;
+  ifstream in_file(fname.c_str(), ios::in | ios::binary);
+  if (in_file.is_open())
+  {
+    //fptr = new float[max_alloc];
+    if (read_alloc <= max_alloc) {
+      if (!in_file.read(reinterpret_cast<char*>(fptr), sizeof(float)*read_alloc))
+      {
+    	  cout << "Read Error in myRead" << endl;
+          retval = 1;
+      }
+    } else {
+      cerr << "Desired dimensions too large: " << read_alloc << " > " << max_alloc << "\n";
+      retval = 1;
+    }
+    in_file.close();
+  }
+  else
+    cerr << "Couldn't open file: " << fname << endl;
+
+  //if (retval) delete [] fptr;
+  return retval;
+}
 
 
 
-int run_single_test(string imageDir, map<string, int> layer_params, float * &dma_input, float * gold_outputs){
+static int run_single_test(string imageDir, map<string, int> layer_params, float * &dma_input, float * gold_outputs){
   
   
 
@@ -34,12 +63,12 @@ int run_single_test(string imageDir, map<string, int> layer_params, float * &dma
   int num_biases = layer_params["output_dim"];
 
   // very basic input checking
-  if (layer_params["input_dim"] > MAX_INPUT_DIMS ||
-      layer_params["input_width"] > MAX_INPUT_WIDTH ||
-      layer_params["input_height"] > MAX_INPUT_WIDTH ||
-      layer_params["output_dim"] > MAX_OUTPUT_DIMS ||
-      layer_params["output_width"] > MAX_OUTPUT_WIDTH ||
-      layer_params["output_height"] > MAX_OUTPUT_WIDTH ||
+  if (layer_params["input_dim"] > CONV_MAX_INPUT_DIMS ||
+      layer_params["input_width"] > CONV_MAX_INPUT_WIDTH ||
+      layer_params["input_height"] > CONV_MAX_INPUT_WIDTH ||
+      layer_params["output_dim"] > CONV_MAX_OUTPUT_DIMS ||
+      layer_params["output_width"] > CONV_MAX_OUTPUT_WIDTH ||
+      layer_params["output_height"] > CONV_MAX_OUTPUT_WIDTH ||
       layer_params["batch_size"] > MAX_BATCH)
   {
     cerr << "Problem with layer params\n";
@@ -72,7 +101,7 @@ int run_single_test(string imageDir, map<string, int> layer_params, float * &dma
     #ifdef HW_TEST
     hw_conv_layer(HW_CTRL_ADDR, dma_input, 0,
                   sizeof(float)*(b*num_inputs+num_biases + num_weights),
-                  b, od, ox, oy, id, ix, iy, s, k);
+                  b, od, ox, oy, id, ix, iy, s, k,1);
     #else
     conv_layer(dma_input, 0, sizeof(float)*(b*num_inputs+num_biases + num_weights),
                b, od, ox, oy, id, ix, iy, s, k);
@@ -85,36 +114,88 @@ int run_single_test(string imageDir, map<string, int> layer_params, float * &dma
 }
 
 
-int main()
+int main(int argc, char** argv)
 {
 
-  string imageRootDir = "data/vgg_batches/batch_";
+  string imageRootDir = "data/test/batch_";
   int numBatches = 1;
-  string layer = "conv5_3";
-  string imageDir;
+  string layer = "conv3d";
+  // string prev_layer = prevLayer;
+  string feed = "/dma_in";
+  // if(prevLayer.empty()){
+  //   prev_layer = layer;
+  //   feed = "dma_in";
+  // }
+
+  string imageDir, imageDir_current;
   ostringstream ss;
-  float total_error = 0.0;
-  cout << "Reading Input for " << numBatches << " batches" <<  endl;
+  cout << "Starting Test with " << numBatches << " batches" <<  endl;
 
   vector<map<string, int> > batch_layer_params = readBatchParams(imageRootDir, numBatches, layer);
   vector<float *> dma_input_vec;
   vector<float *> gold_outputs_vec;
-  if(readInputBatches(imageRootDir, batch_layer_params, numBatches, layer, MAX_WEIGHT_SIZE+MAX_OUTPUT_DIMS+MAX_BATCH*MAX_CONV_INPUT+MAX_BATCH*MAX_CONV_OUTPUT, dma_input_vec, CONV))
-	return 1;
+  // if(prevLayer.empty()){
+  //   if(readInputBatches(imageRootDir, batch_layer_params, numBatches, layer, FC_MAX_WEIGHT_SIZE+FC_MAX_OUTPUT_SIZE+MAX_BATCH*FC_MAX_INPUT_SIZE+MAX_BATCH*FC_MAX_OUTPUT_SIZE, dma_input_vec, FC))
+  //     return 1;
+  // }else{
+    for(int i = 0; i < numBatches; i++)
+    {
+      static float dma_in[MAX_WEIGHT_SIZE+MAX_OUTPUT_CHANNELS+MAX_BATCH*MAX_CONV_INPUT+MAX_BATCH*MAX_CONV_OUTPUT];
+      
+      float * ptr = dma_in;
+      ss.str("");
+        ss << i;
+      imageDir = imageRootDir + ss.str() + "/" + layer;
+      imageDir_current = imageRootDir + ss.str() + "/" + layer;
+  		int size = batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]+
+	               batch_layer_params[i]["output_channel"] +
+	               batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_weight"];
+
+      int wsize = batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
+      int bsize = batch_layer_params[i]["output_channel"];
+      int isize = batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_weight"];
+      string fname;
+      /*Reading weights*/
+      if (myreadFile(imageDir_current + "/testfilters", ptr, wsize, MAX_WEIGHT_SIZE )) {
+        cout << "Read Error";
+        return 1;
+      }
+
+      ptr += wsize;
+      /*Reading Biases*/
+      if (myreadFile(imageDir_current + "/testbiases", ptr, bsize, MAX_CONV_OUTPUT )) {
+        cout << "Read Error";
+        return 1;
+      }
+      /*Reading Inputs*/
+      ptr += bsize;
+      if (myreadFile(imageDir_current + "/testinput", ptr, isize, MAX_BATCH*MAX_CONV_INPUT )) {
+        cout << "Read Error";
+        return 1;
+      }
+      dma_input_vec.push_back(dma_in);
+      string outdir = imageRootDir + ss.str() + "/" + layer + "/" +"created_dma_in";
+      ofstream myFile(outdir.c_str(), ios::out | ios::binary);
+      myFile.write((char *)dma_in, size*sizeof(float));    
+      myFile.close();
+
+    }
+  //}
+
+
   if(readOutputBatches(imageRootDir, batch_layer_params, numBatches, layer, MAX_BATCH*MAX_CONV_OUTPUT, gold_outputs_vec, CONV)) return 1;
-
-
-  cout << "Starting Test with " << numBatches << " batches" <<  endl;
-
 
   auto start = chrono::system_clock::now(); 
   for(int i=0; i<numBatches; i++){
+    
+    ostringstream ss;
     ss << i;
+   
 #ifdef PRINT
     cout << "Running batch" << i << endl;
 #endif
     imageDir = imageRootDir + ss.str() + "/" + layer;
-    
+    cout << "ImageDir is " << imageDir << endl;  
     if(run_single_test(imageDir, batch_layer_params[i], dma_input_vec[i], gold_outputs_vec[i])!=0)
 	return 1;
   }
@@ -122,9 +203,9 @@ int main()
   auto elapsed = end - start;
 
   float avg_error = get_mean_squared_error_and_write_file(dma_input_vec, gold_outputs_vec, numBatches, batch_layer_params, imageRootDir, layer, CONV);
-
+  
   cout << "Mean Square Error " << avg_error << endl;
-  cout << "Computation took  " << chrono::duration_cast<chrono::seconds> (elapsed).count() << " seconds" << endl;
+  cout << "Computation took  " << chrono::duration_cast<chrono::milliseconds> (elapsed).count() << " ms" << endl;
   std::cout << "DONE" << std::endl;
   return 0;
 }

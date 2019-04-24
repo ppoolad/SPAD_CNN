@@ -2,18 +2,18 @@
 #define _CONV_LAYER_H
 
 // Limits
-#define MAX_BATCH 10
-#define MAX_KERNEL_SIZE 3
-#define MAX_INPUT_DIMS 512
-#define MAX_OUTPUT_DIMS 512
+#define MAX_BATCH 1
+#define MAX_KERNEL_SIZE 9
+#define MAX_INPUT_DIMS 1024
+#define MAX_OUTPUT_DIMS 1024
 #define MAX_OUTPUT_CHANNELS 4
-#define MAX_INPUT_WIDTH 226
-#define MAX_INPUT_HEIGHT 226
-#define MAX_OUTPUT_WIDTH 224
-#define MAX_OUTPUT_HEIGHT 224
+#define MAX_INPUT_WIDTH 64
+#define MAX_INPUT_HEIGHT 64
+#define MAX_OUTPUT_WIDTH 64
+#define MAX_OUTPUT_HEIGHT 64
 #define MAX_CONV_INPUT MAX_INPUT_DIMS*MAX_INPUT_WIDTH*MAX_INPUT_HEIGHT 
-#define MAX_CONV_OUTPUT MAX_OUTPUT_DIMS*MAX_OUTPUT_WIDTH*MAX_OUTPUT_HEIGHT 
-#define MAX_WEIGHT_SIZE MAX_OUTPUT_DIMS*MAX_INPUT_DIMS*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE
+#define MAX_CONV_OUTPUT MAX_OUTPUT_CHANNELS*MAX_OUTPUT_DIMS*MAX_OUTPUT_WIDTH*MAX_OUTPUT_HEIGHT 
+#define MAX_WEIGHT_SIZE MAX_OUTPUT_CHANNELS*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE
 
 void conv3d_layer(float * mem,            // global memory pointer
                 int input_offset,       // offset of inputs
@@ -27,7 +27,7 @@ void conv3d_layer(float * mem,            // global memory pointer
                 const int ix,           // input width
                 const int iy,           // input height
                 const int s,            // stride
-                const int k)            // kernel size
+                const int k);            // kernel size
 void hw_conv3d_layer(int target,             // control register target
                    float * mem,            // global memory pointer
                    int input_offset,       // offset of inputs
