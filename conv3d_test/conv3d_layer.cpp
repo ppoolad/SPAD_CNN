@@ -36,7 +36,7 @@ void conv3d_layer(float * mem,            // global memory pointer
 #pragma HLS INTERFACE s_axilite port=output_offset
 #pragma HLS INTERFACE s_axilite port=return bundle=CTRL_BUS
  
-  int num_weights = oc*k*k*k;
+  int num_weights = ic*oc*k*k*k;
   int num_biases = oc;
   int num_input = b*id*ix*iy;
   int num_output = b*oc*od*ox*oy;
@@ -57,7 +57,7 @@ void conv3d_layer(float * mem,            // global memory pointer
           for (int o_x = 0; o_x < ox; o_x++)
           {
             // Set bias 
-            float output_element = mem[input_offset/sizeof(float) + num_weights + o_d];
+            float output_element = mem[input_offset/sizeof(float) + num_weights + o_c];
 
             // Weighted Sum:
             for(int i_c = 0; i_c < ic; i_c++)
