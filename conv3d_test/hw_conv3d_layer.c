@@ -17,7 +17,7 @@
 #include <sys/unistd.h>
 
 #include "util/shared.h"
-#include "xconv_layer_hw.h"
+#include "xconv3d_layer_hw.h"
 
 #define MAP_SIZE (1024UL*1024UL)
 
