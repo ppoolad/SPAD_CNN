@@ -15,7 +15,9 @@ void conv3d_layer(float * mem,            // global memory pointer
                 const int ix,           // input width
                 const int iy,           // input height
                 const int s,            // stride
-                const int k)            // kernel size
+                const int k,            // kernel size
+                const int relu,         //relu enable
+                const int bnorm)       // batch norm enable
 {
 
 // Global memory interface
@@ -77,7 +79,11 @@ void conv3d_layer(float * mem,            // global memory pointer
               }
             }
             // Write output
-            mem[output_offset/sizeof(float) + b_*od*ox*oy + o_d*ox*oy + o_y*ox + o_x] = std::max(0.0f, output_element);
+            if(bnorm){
+              //TBC
+            }
+            if(relu) output_element = std::max(0.0f, output_element);
+            mem[output_offset/sizeof(float) + b_*od*ox*oy + o_d*ox*oy + o_y*ox + o_x] = output_element;
           }
         }
       }
