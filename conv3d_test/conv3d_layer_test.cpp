@@ -151,11 +151,11 @@ int main(int argc, char** argv)
       imageDir_current = imageRootDir + ss.str() + "/" + layer;
   		int size = batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]+
 	               batch_layer_params[i]["output_channel"] +
-	               batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_weight"];
+	               batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_width"];
 
       int wsize = batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
       int bsize = batch_layer_params[i]["output_channel"];
-      int isize = batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_weight"];
+      int isize = batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_width"];
       string fname;
       /*Reading weights*/
       if (myreadFile(imageDir_current + "/testfilters", ptr, wsize, MAX_WEIGHT_SIZE )) {
