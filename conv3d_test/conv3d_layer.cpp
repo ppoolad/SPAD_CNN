@@ -17,7 +17,12 @@ void conv3d_layer(float * mem,            // global memory pointer
                 const int s,            // stride
                 const int k,            // kernel size
                 const int relu,         //relu enable
-                const int bnorm)       // batch norm enable
+                const int bnorm,       // batch norm enable
+                const float mean,
+                const float var,
+                const float gamma,
+                const float beta)
+
 {
 
 // Global memory interface
@@ -40,7 +45,7 @@ void conv3d_layer(float * mem,            // global memory pointer
   int num_biases = oc;
   int num_input = b*id*ix*iy;
   int num_output = b*oc*od*ox*oy;
-
+  float num =  gamma/sqrt(var + EPSILON);
   // Batch
   for (int b_=0; b_< b; b_++)
   {
@@ -81,6 +86,7 @@ void conv3d_layer(float * mem,            // global memory pointer
             // Write output
             if(bnorm){
               //TBC
+              output_element = (output_element-mean)*num + beta;
             }
             if(relu) output_element = std::max(0.0f, output_element);
             mem[output_offset/sizeof(float) + b_*od*ox*oy + o_d*ox*oy + o_y*ox + o_x] = output_element;
