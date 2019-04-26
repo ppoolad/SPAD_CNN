@@ -58,10 +58,10 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
                     layer_params["output_height"];
   int num_inputs = layer_params["input_dim"]*layer_params["input_width"]*
                    layer_params["input_height"];
-  int num_weights = layer_params["input_dim"]*layer_params["output_dim"]*
+  int num_weights = layer_params["input_channel"]*layer_params["output_channel"]*
                     layer_params["kernel_size"]*layer_params["kernel_size"];
-  int num_biases = layer_params["output_dim"];
-  int num_bnormparams = layer_params["output_dim"]*4;
+  int num_biases = layer_params["output_channel"];
+  int num_bnormparams = layer_params["output_channel"]*4;
 
   // very basic input checking
   if (layer_params["input_dim"] > MAX_INPUT_DIMS ||
