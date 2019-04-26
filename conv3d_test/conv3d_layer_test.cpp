@@ -174,7 +174,7 @@ int main(int argc, char** argv)
       ptr += bsize;
 
       /*reading bnorm params*/
-      if (myreadFile(imageDir_current + "/bnormparams", ptr, bsize, MAX_CONV_OUTPUT )) {
+      if (myreadFile(imageDir_current + "/bnormparams", ptr, bsize*4, MAX_CONV_OUTPUT )) {
         std::cout << "Read Error";
         return 1;
       }
