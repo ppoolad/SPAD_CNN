@@ -1,4 +1,9 @@
-# ECE1373_assignment2
+# ECE1373_project
+
+
+## Network to be built
+
+![NETWORK](./NETWORK.jpg)
 
 Welcome to the second assignment in ECE1373
 

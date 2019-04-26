@@ -17,11 +17,7 @@ void conv3d_layer(float * mem,            // global memory pointer
                 const int s,            // stride
                 const int k,            // kernel size
                 const int relu,         //relu enable
-                const int bnorm,       // batch norm enable
-                const float mean,
-                const float var,
-                const float gamma,
-                const float beta)
+                const int bnorm)       // batch norm enable
 
 {
 
@@ -40,12 +36,23 @@ void conv3d_layer(float * mem,            // global memory pointer
 #pragma HLS INTERFACE s_axilite port=input_offset
 #pragma HLS INTERFACE s_axilite port=output_offset
 #pragma HLS INTERFACE s_axilite port=return bundle=CTRL_BUS
+
+
+/**
+ * 
+ * MEMORY MAP
+ * [Weights --- biases --- batch norm (mean, var, gamma, beta) --- inputs]
+ * 
+ * 
+ * 
+ */
  
   int num_weights = ic*oc*k*k*k;
+  int num_batchnorm_params = oc*4; // mean, var, gamma,beta
   int num_biases = oc;
   int num_input = b*id*ix*iy;
   int num_output = b*oc*od*ox*oy;
-  float num =  gamma/sqrt(var + EPSILON);
+  //float num =  gamma/sqrt(var + EPSILON);
   // Batch
   for (int b_=0; b_< b; b_++)
   {
@@ -53,6 +60,7 @@ void conv3d_layer(float * mem,            // global memory pointer
     for(int o_c = 0; o_c < oc; o_c++ )
     {
       // Output Dimensions (Feature Maps)
+      // BATCH NORM PARAM LOADED HERE
       for (int o_d = 0; o_d < od; o_d++)
       {
         // Output Y Dimension
@@ -63,6 +71,7 @@ void conv3d_layer(float * mem,            // global memory pointer
           {
             // Set bias 
             float output_element = mem[input_offset/sizeof(float) + num_weights + o_c];
+            
 
             // Weighted Sum:
             for(int i_c = 0; i_c < ic; i_c++)
@@ -77,7 +86,7 @@ void conv3d_layer(float * mem,            // global memory pointer
                   // Input X Dimension
                   for (int i_x = o_x*s, iix = 0; i_x < o_x*s+k; i_x++, iix++)
                   {
-                    output_element += mem[input_offset/sizeof(float) + num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
+                    output_element += mem[input_offset/sizeof(float) + num_weights+num_biases + num_batchnorm_params + b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
                                       mem[input_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + iid*k*k + iiy*k + iix];
                   }
                 }
@@ -85,8 +94,8 @@ void conv3d_layer(float * mem,            // global memory pointer
             }
             // Write output
             if(bnorm){
-              //TBC
-              output_element = (output_element-mean)*num + beta;
+              //!TBC
+              //output_element = (output_element-mean)*num + beta;
             }
             if(relu) output_element = std::max(0.0f, output_element);
             mem[output_offset/sizeof(float) + b_*od*ox*oy + o_d*ox*oy + o_y*ox + o_x] = output_element;
