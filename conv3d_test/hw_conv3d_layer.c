@@ -21,19 +21,24 @@
 
 #define MAP_SIZE (1024UL*1024UL)
 
-void hw_conv_layer(int target,             // control address in the system
-                   float * mem,            // global memory pointer
-                   int input_offset,       // offset of inputs
-                   int output_offset,      // offset of outputs
-                   const int b,            // batch size
-                   const int od,           // output dimensions
-                   const int ox,           // output width
-                   const int oy,           // output height
-                   const int id,           // input dimensions
-                   const int ix,           // input width
-                   const int iy,           // input height
-                   const int s,            // stride
-                   const int k)            // kernel size
+void hw_conv3d_layer(int target,             // control register target
+                    float * mem,            // global memory pointer
+                    int input_offset,       // offset of inputs
+                    int parameters_offset,  // offset of parameters
+                    int output_offset,      // offset of outputs
+                    const int b,            // batch size
+                    const int od,           // output dimensions
+                    const int ox,           // output width
+                    const int oy,           // output height
+                    const int oc,           // output channel
+                    const int ic,           // input channel
+                    const int id,           // input dimensions
+                    const int ix,           // input width
+                    const int iy,           // input height
+                    const int s,            // stride
+                    const int k,            // kernel size
+                    const int relu,         //relu enable
+                    const int bnorm)        // bnorm enable
 {
   volatile void* map_base;
   const char * pPath = getenv("XDMA");

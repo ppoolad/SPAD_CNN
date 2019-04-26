@@ -61,6 +61,7 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
   int num_weights = layer_params["input_dim"]*layer_params["output_dim"]*
                     layer_params["kernel_size"]*layer_params["kernel_size"];
   int num_biases = layer_params["output_dim"];
+  int num_bnormparams = layer_params["output_dim"]*4
 
   // very basic input checking
   if (layer_params["input_dim"] > MAX_INPUT_DIMS ||
@@ -85,7 +86,7 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
     int s = layer_params["stride"];
     int oc = layer_params["output_channel"];
     int ic = layer_params["input_channel"];
-
+    
 #ifdef PRINT
     cout << "Begin Test\n"
        << "Batch Size: " << b << endl
@@ -105,8 +106,8 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
                   sizeof(float)*(b*num_inputs+num_biases + num_weights),
                   b, od, ox, oy, id, ix, iy, s, k,1,0,0);
     #else
-    conv3d_layer(dma_input, 0, sizeof(float)*(b*num_inputs+num_biases + num_weights),
-               b, od, ox, oy, oc, ic, id, ix, iy, s, k,0,0);
+    conv3d_layer(dma_input, sizeof(float)*(num_biases + num_weights + num_bnormparams), 0 ,sizeof(float)*(b*num_inputs+num_biases + num_weights + num_bnormparams),
+               b, od, ox, oy, oc, ic, id, ix, iy, s, k,1,1);
     #endif
 
   }
@@ -169,8 +170,15 @@ int main(int argc, char** argv)
         cout << "Read Error";
         return 1;
       }
-      /*Reading Inputs*/
+      
       ptr += bsize;
+
+      /*reading bnorm params*/
+      if (myreadFile(imageDir_current + "/bnormparams", ptr, bsize, MAX_CONV_OUTPUT )) {
+        cout << "Read Error";
+        return 1;
+      }
+      /*Reading Inputs*/
       if (myreadFile(imageDir_current + "/testinput", ptr, isize, 1*MAX_CONV_INPUT )) {
         cout << "Read Error";
         return 1;

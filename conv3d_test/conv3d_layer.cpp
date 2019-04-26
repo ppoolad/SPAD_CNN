@@ -1,11 +1,12 @@
 #include <algorithm>
 #include <float.h>
 #include "conv3d_layer.h"
-
-#define EPSILON 0.00673794699
+#include "math.h"
+#define EPSILON 0.00001
 
 void conv3d_layer(float * mem,            // global memory pointer
                 int input_offset,       // offset of inputs
+                int parameters_offset,  // offset of parameters
                 int output_offset,      // offset of outputs
                 const int b,            // batch size
                 const int od,           // output dimensions
@@ -19,7 +20,7 @@ void conv3d_layer(float * mem,            // global memory pointer
                 const int s,            // stride
                 const int k,            // kernel size
                 const int relu,         //relu enable
-                const int bnorm,       // batch norm enable
+                const int bnorm       // batch norm enable
                 )
 
 {
@@ -44,7 +45,7 @@ void conv3d_layer(float * mem,            // global memory pointer
   int num_biases = oc;
   int num_input = b*id*ix*iy;
   int num_output = b*oc*od*ox*oy;
-  int num_bnorm  = oc * 4; //mean + var + beta + ghama
+  int num_bnorm  = oc; //mean + var + beta + ghama
   // input weight + bias + input + 
   // Batch
   for (int b_=0; b_< b; b_++)
@@ -52,10 +53,10 @@ void conv3d_layer(float * mem,            // global memory pointer
     // Output Channels
     for(int o_c = 0; o_c < oc; o_c++ )
     {
-      float mean  = mem[input_offset/sizeof(float) + num_weights + oc + num_input+               o_c];
-      float var   = mem[input_offset/sizeof(float) + num_weights + oc + num_input+ num_bnorm*1 + o_c];
-      float beta  = mem[input_offset/sizeof(float) + num_weights + oc + num_input+ num_bnorm*2 + o_c];
-      float gamma = mem[input_offset/sizeof(float) + num_weights + oc + num_input+ num_bnorm*3 + o_c];
+      float mean  = mem[parameters_offset/sizeof(float) + num_weights + oc +                o_c];
+      float var   = mem[parameters_offset/sizeof(float) + num_weights + oc +  num_bnorm*1 + o_c];
+      float beta  = mem[parameters_offset/sizeof(float) + num_weights + oc +  num_bnorm*2 + o_c];
+      float gamma = mem[parameters_offset/sizeof(float) + num_weights + oc +  num_bnorm*3 + o_c];
       float num   =  gamma/sqrt(var + EPSILON);
       // Output Dimensions (Feature Maps)
       for (int o_d = 0; o_d < od; o_d++)
@@ -67,7 +68,7 @@ void conv3d_layer(float * mem,            // global memory pointer
           for (int o_x = 0; o_x < ox; o_x++)
           {
             // Set bias 
-            float output_element = mem[input_offset/sizeof(float) + num_weights + o_c];
+            float output_element = mem[parameters_offset/sizeof(float) + num_weights + o_c];
 
             // Weighted Sum:
             for(int i_c = 0; i_c < ic; i_c++)
@@ -82,8 +83,8 @@ void conv3d_layer(float * mem,            // global memory pointer
                   // Input X Dimension
                   for (int i_x = o_x*s, iix = 0; i_x < o_x*s+k; i_x++, iix++)
                   {
-                    output_element += mem[input_offset/sizeof(float) + num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
-                                      mem[input_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + iid*k*k + iiy*k + iix];
+                    output_element += mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]* //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
+                                      mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + iid*k*k + iiy*k + iix];
                   }
                 }
               }

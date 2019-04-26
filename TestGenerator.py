@@ -30,6 +30,9 @@ run_var = 1
 gamma = 1
 beta = 0.5
 bnormpar = torch.tensor([run_mean, run_var, gamma, beta])
+
+bnormpar.numpy().astype('float32').tofile('bnormparams');
+
 normed_var = nn.functional.batch_norm(output_var,bnormpar[0].reshape(1),
                                       bnormpar[1].reshape(1),
                                       weight=bnormpar[2].reshape(1),
