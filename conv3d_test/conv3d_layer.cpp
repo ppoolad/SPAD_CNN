@@ -2,6 +2,8 @@
 #include <float.h>
 #include "conv3d_layer.h"
 
+#define EPSILON 0.00673794699
+
 void conv3d_layer(float * mem,            // global memory pointer
                 int input_offset,       // offset of inputs
                 int output_offset,      // offset of outputs
@@ -18,10 +20,7 @@ void conv3d_layer(float * mem,            // global memory pointer
                 const int k,            // kernel size
                 const int relu,         //relu enable
                 const int bnorm,       // batch norm enable
-                const float mean,
-                const float var,
-                const float gamma,
-                const float beta)
+                )
 
 {
 
@@ -45,13 +44,19 @@ void conv3d_layer(float * mem,            // global memory pointer
   int num_biases = oc;
   int num_input = b*id*ix*iy;
   int num_output = b*oc*od*ox*oy;
-  float num =  gamma/sqrt(var + EPSILON);
+  int num_bnorm  = oc * 4; //mean + var + beta + ghama
+  // input weight + bias + input + 
   // Batch
   for (int b_=0; b_< b; b_++)
   {
     // Output Channels
     for(int o_c = 0; o_c < oc; o_c++ )
     {
+      float mean  = mem[input_offset/sizeof(float) + num_weights + oc + num_input+               o_c];
+      float var   = mem[input_offset/sizeof(float) + num_weights + oc + num_input+ num_bnorm*1 + o_c];
+      float beta  = mem[input_offset/sizeof(float) + num_weights + oc + num_input+ num_bnorm*2 + o_c];
+      float gamma = mem[input_offset/sizeof(float) + num_weights + oc + num_input+ num_bnorm*3 + o_c];
+      float num   =  gamma/sqrt(var + EPSILON);
       // Output Dimensions (Feature Maps)
       for (int o_d = 0; o_d < od; o_d++)
       {
