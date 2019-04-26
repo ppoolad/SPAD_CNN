@@ -59,7 +59,7 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
   int num_inputs = layer_params["input_dim"]*layer_params["input_width"]*
                    layer_params["input_height"];
   int num_weights = layer_params["input_channel"]*layer_params["output_channel"]*
-                    layer_params["kernel_size"]*layer_params["kernel_size"];
+                    layer_params["kernel_size"]*layer_params["kernel_size"]*layer_params["kernel_size"];
   int num_biases = layer_params["output_channel"];
   int num_bnormparams = layer_params["output_channel"]*4;
 
