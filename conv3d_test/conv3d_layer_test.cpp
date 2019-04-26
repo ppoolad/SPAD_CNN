@@ -143,7 +143,7 @@ int main(int argc, char** argv)
   // }else{
     for(int i = 0; i < numBatches; i++)
     {
-      static float dma_in[MAX_WEIGHT_SIZE+MAX_OUTPUT_CHANNELS+MAX_CONV_INPUT+MAX_CONV_OUTPUT];
+      static float dma_in[MAX_WEIGHT_SIZE+2*MAX_OUTPUT_CHANNELS+MAX_CONV_INPUT+MAX_CONV_OUTPUT];
       
       float * ptr = dma_in;
       ss.str("");
@@ -178,6 +178,7 @@ int main(int argc, char** argv)
         std::cout << "Read Error";
         return 1;
       }
+      ptr += bsize*4;
       /*Reading Inputs*/
       if (myreadFile(imageDir_current + "/testinput", ptr, isize, 1*MAX_CONV_INPUT )) {
         std::cout << "Read Error";
