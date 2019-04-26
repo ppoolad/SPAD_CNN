@@ -5,17 +5,18 @@
 
 ![NETWORK](./NETWORK.jpg)
 
-Welcome to the second assignment in ECE1373
-
+Welcome to the project of ECE1373
+This project is to use CNN for depth optimization of SPAD sensors' output.
 This will describe how to run the provided sample code in this directory. 
-This description assumes you have read the assignment handout in doc/assignment2.pdf
+
 
 ## Code Organization
 
 The source code is organized as follows:
-- fc directory has files for fully connected layer
 - conv directory has files for the convolution layer
-- nn_params stores binaries for the weights, biases, inputs and reference output. This also contains a script extractParams to create new binaries for other layers. 
+- conv3d directory contains files for convolution 3d layer
+- conv_trans3d directory contains files for convolution transpose 3d layer
+- data stores binaries for the weights, biases, inputs and reference output. This also contains a script extractParams to create new binaries for other layers. 
 - util directory has the shared function to read input.
 - hls_proj contains tcl scripts to create a vivado_hls project for convolution and fc.
 - pci_tests includes tests to read and write to pcie.
