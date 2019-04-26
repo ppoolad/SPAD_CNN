@@ -213,7 +213,7 @@ int main(int argc, char** argv)
   auto end = chrono::system_clock::now(); 
   auto elapsed = end - start;
 
-  float avg_error = get_mean_squared_error_and_write_file(dma_input_vec, gold_outputs_vec, numBatches, batch_layer_params, imageRootDir, layer, CONV);
+  float avg_error = get_mean_squared_error_and_write_file(dma_input_vec, gold_outputs_vec, numBatches, batch_layer_params, imageRootDir, layer, CONV3D);
   
   std::cout << "Mean Square Error " << avg_error << endl;
   std::cout << "Computation took  " << chrono::duration_cast<chrono::milliseconds> (elapsed).count() << " ms" << endl;
