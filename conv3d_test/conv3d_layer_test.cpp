@@ -31,7 +31,7 @@ static int myreadFile(const string fname,
     if (read_alloc <= max_alloc) {
       if (!in_file.read(reinterpret_cast<char*>(fptr), sizeof(float)*read_alloc))
       {
-    	  cout << "Read Error in myRead" << endl;
+    	  std::cout << "Read Error in myRead" << endl;
           retval = 1;
       }
     } else {
@@ -61,7 +61,7 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
   int num_weights = layer_params["input_dim"]*layer_params["output_dim"]*
                     layer_params["kernel_size"]*layer_params["kernel_size"];
   int num_biases = layer_params["output_dim"];
-  int num_bnormparams = layer_params["output_dim"]*4
+  int num_bnormparams = layer_params["output_dim"]*4;
 
   // very basic input checking
   if (layer_params["input_dim"] > MAX_INPUT_DIMS ||
@@ -132,7 +132,7 @@ int main(int argc, char** argv)
 
   string imageDir, imageDir_current;
   ostringstream ss;
-  cout << "Starting Test with " << numBatches << " batches" <<  endl;
+  std::cout << "Starting Test with " << numBatches << " batches" <<  endl;
 
   vector<map<string, int> > batch_layer_params = readBatchParams(imageRootDir, numBatches, layer);
   vector<float *> dma_input_vec;
@@ -160,14 +160,14 @@ int main(int argc, char** argv)
       string fname;
       /*Reading weights*/
       if (myreadFile(imageDir_current + "/testfilters", ptr, wsize, MAX_WEIGHT_SIZE )) {
-        cout << "Read Error";
+        std::cout << "Read Error";
         return 1;
       }
 
       ptr += wsize;
       /*Reading Biases*/
       if (myreadFile(imageDir_current + "/testbiases", ptr, bsize, MAX_CONV_OUTPUT )) {
-        cout << "Read Error";
+        std::cout << "Read Error";
         return 1;
       }
       
@@ -175,12 +175,12 @@ int main(int argc, char** argv)
 
       /*reading bnorm params*/
       if (myreadFile(imageDir_current + "/bnormparams", ptr, bsize, MAX_CONV_OUTPUT )) {
-        cout << "Read Error";
+        std::cout << "Read Error";
         return 1;
       }
       /*Reading Inputs*/
       if (myreadFile(imageDir_current + "/testinput", ptr, isize, 1*MAX_CONV_INPUT )) {
-        cout << "Read Error";
+        std::cout << "Read Error";
         return 1;
       }
       dma_input_vec.push_back(dma_in);
@@ -205,7 +205,7 @@ int main(int argc, char** argv)
     cout << "Running batch" << i << endl;
 #endif
     imageDir = imageRootDir + ss.str() + "/" + layer;
-    cout << "ImageDir is " << imageDir << endl;  
+    std::cout << "ImageDir is " << imageDir << endl;  
     if(run_single_test(imageDir, batch_layer_params[i], dma_input_vec[i], gold_outputs_vec[i])!=0)
 	return 1;
   }
@@ -214,8 +214,8 @@ int main(int argc, char** argv)
 
   float avg_error = get_mean_squared_error_and_write_file(dma_input_vec, gold_outputs_vec, numBatches, batch_layer_params, imageRootDir, layer, CONV);
   
-  cout << "Mean Square Error " << avg_error << endl;
-  cout << "Computation took  " << chrono::duration_cast<chrono::milliseconds> (elapsed).count() << " ms" << endl;
+  std::cout << "Mean Square Error " << avg_error << endl;
+  std::cout << "Computation took  " << chrono::duration_cast<chrono::milliseconds> (elapsed).count() << " ms" << endl;
   std::cout << "DONE" << std::endl;
   return 0;
 }
