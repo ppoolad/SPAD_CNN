@@ -32,12 +32,17 @@ void conv3d_layer(float * mem,            // global memory pointer
 #pragma HLS INTERFACE s_axilite port=od bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=ox bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=oy bundle=CTRL_BUS
+#pragma HLS INTERFACE s_axilite port=oc bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=id bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=ix bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=iy bundle=CTRL_BUS
+#pragma HLS INTERFACE s_axilite port=ic bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=s bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=k bundle=CTRL_BUS
+#pragma HLS INTERFACE s_axilite port=relu bundle=CTRL_BUS
+#pragma HLS INTERFACE s_axilite port=bnorm bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=input_offset
+#pragma HLS INTERFACE s_axilite port=parameters_offset
 #pragma HLS INTERFACE s_axilite port=output_offset
 #pragma HLS INTERFACE s_axilite port=return bundle=CTRL_BUS
  
