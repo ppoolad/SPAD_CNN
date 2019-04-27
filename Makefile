@@ -1,5 +1,5 @@
 DCP = static_routed_v1.dcp
-PR_SRCS = conv_test/conv_layer.cpp conv_test/conv_layer.h fc_test/fc_layer.cpp fc_test/fc_layer.h maxpool_test/maxpool_layer.cpp maxpool_test/maxpool_layer.h 8v3_shell/create_pr2_nn.tcl 8v3_shell/create_pr2_0.tcl 8v3_shell/create_pr2_1.tcl 8v3_shell/pr_region_2_bd.tcl
+PR_SRCS = conv3d_test/conv3d_layer.cpp conv3d_test/conv3d_layer.h 8v3_shell/create_pr2_nn.tcl 8v3_shell/create_pr2_0.tcl 8v3_shell/create_pr2_1.tcl 8v3_shell/pr_region_2_bd.tcl
 PROJNAME = pr_region_test_proj 
 
 
