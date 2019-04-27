@@ -1,5 +1,5 @@
 DCP = static_routed_v1.dcp
-PR_SRCS = conv3d_test/conv3d_layer.cpp conv3d_test/conv3d_layer.h 8v3_shell/create_pr2_nn.tcl 8v3_shell/create_pr2_0.tcl 8v3_shell/create_pr2_1.tcl 8v3_shell/pr_region_2_bd.tcl
+PR_SRCS = conv_test/conv_layer.cpp conv_test/conv_layer.h conv3d_test/conv3d_layer.cpp conv3d_test/conv3d_layer.h 8v3_shell/create_pr2_nn.tcl 8v3_shell/create_pr2_0.tcl 8v3_shell/create_pr2_1.tcl 8v3_shell/pr_region_2_bd.tcl
 PROJNAME = pr_region_test_proj 
 
 
@@ -55,10 +55,10 @@ unified_fc_conv_hls: conv_fc_unified_test/* util/*
 	vivado_hls hls_proj/unified_fc_conv_hls.tcl
 
 
-pr:     $(PR_SRCS) dcp conv3d_hls ##fc_hls maxpool_hls unified_fc_conv_hls
+pr:     $(PR_SRCS) dcp conv_hls conv3d_hls ##fc_hls maxpool_hls unified_fc_conv_hls
 	vivado -mode batch -source 8v3_shell/create_pr2_nn.tcl -tclargs $(DCP) $(PROJNAME)  0 
 
-pr_modify: $(PR_SRCS) dcp conv3d_hls## fc_hls maxpool_hls unified_fc_conv_hls
+pr_modify: $(PR_SRCS) dcp conv_hls conv3d_hls## fc_hls maxpool_hls unified_fc_conv_hls
 	vivado -mode gui -source 8v3_shell/create_pr2_nn.tcl -tclargs $(DCP) $(PROJNAME)  1
 
 
