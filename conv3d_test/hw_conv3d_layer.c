@@ -36,7 +36,8 @@ void hw_conv3d_layer(int target,             // control register target
                     const int ix,           // input width
                     const int iy,           // input height
                     const int s,            // stride
-                    const int k,            // kernel size
+                const int k,            // kernel size
+                const int pad,          // padding
                     const int relu,         //relu enable
                     const int bnorm)        // bnorm enable
 {
