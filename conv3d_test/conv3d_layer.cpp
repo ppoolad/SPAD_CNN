@@ -19,6 +19,7 @@ void conv3d_layer(float * mem,            // global memory pointer
                 const int iy,           // input height
                 const int s,            // stride
                 const int k,            // kernel size
+                const int pad,          // padding
                 const int relu,         //relu enable
                 const int bnorm       // batch norm enable
                 )
@@ -80,16 +81,20 @@ void conv3d_layer(float * mem,            // global memory pointer
             {
             
             // Input Dimensions (Feature Maps)
-              for (int i_d = o_d*s, iid = 0; i_d < o_d*s+k; i_d++, iid++)
+              for (int i_d = o_d*s-pad, iid = 0; i_d < o_d*s-pad+k; i_d++, iid++)
               {
                 // Input Y Dimension
-                for (int i_y = o_y*s, iiy = 0; i_y < o_y*s+k; i_y++, iiy++)
+                for (int i_y = o_y*s-pad, iiy = 0; i_y < o_y*s-pad+k; i_y++, iiy++)
                 {
                   // Input X Dimension
-                  for (int i_x = o_x*s, iix = 0; i_x < o_x*s+k; i_x++, iix++)
+                  for (int i_x = o_x*s-pad, iix = 0; i_x < o_x*s-pad+k; i_x++, iix++)
                   {
-                    output_element += mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]* //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
+                    //float ifmap = 0.0;
+                    if((i_x > 0 || i_y > 0 || i_d > 0 )&& (i_x < ix || i_y < iy || i_d < id)){
+                      //ifmap = mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x];
+                      output_element += mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x] * //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
                                       mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + iid*k*k + iiy*k + iix];
+                      }
                   }
                 }
               }
