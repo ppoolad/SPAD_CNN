@@ -2,7 +2,10 @@
 #include <float.h>
 #include "conv_trans3d_layer.h"
 #include "math.h"
+#include <iostream>
 #define EPSILON 0.00001
+
+using namespace std;
 
 void conv_trans3d_layer(float * mem,            // global memory pointer
                   int input_offset,       // offset of inputs
@@ -103,6 +106,10 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
                                         if((o_x + iix) >= 0 && (o_y + iiy) >= 0 && (o_d+iid) >= 0 && (o_x + iix) < sim_x && (o_y+iiy) < sim_y && (o_d + iid) < sim_d){ // boundry check
                                             //ifmap = mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x];
                                             if ( (o_x + iix) % s != 0 || (o_y + iiy) % s != 0 || (o_d + iid) % s != 0) continue;
+                                            #ifdef PRINT
+                                            cout << "output[" << o_d << "][" << o_y << "][" << o_x <<  "] += input" << "[" << o_d +iid << "][" << o_y+iiy << "][" << o_x+iix
+                                            << "] * filter[" << "[" << r+iid << "][" << r+iiy << "][" << r+iix << "]" << endl;
+                                            #endif
                                             output_element += mem[input_offset/sizeof(float) +b_*id*ix*iy + (o_d +iid)/s*ix*iy + (o_y+iiy)/s*ix + (o_x+iix)/s] * //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
                                                               mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + (r+iid)*k*k + (r+iiy)*k + r+iix];
                                         }

@@ -14,7 +14,7 @@
 using namespace std;
 
 
-//#define PRINT
+#define PRINT
 
 
 static int run_single_test(string imageDir, map<string, int> layer_params, float * &dma_input, float * gold_outputs){
