@@ -257,6 +257,41 @@ int readOutputBatches(string imageRootDir, vector<map<string, int> > batch_layer
   return 0;
 
 }
+int readOutputBatches(string outname, string imageRootDir, vector<map<string, int> > batch_layer_params, int numBatches, string layer, const int max_alloc, vector <float *> &ptr, int layerType){
+  float * gold_outputs;
+  ostringstream ss;
+  
+
+  // Read inputs
+  // Inputs are packed together as weights, biases and input values
+  // Allocate enough space for outputs
+
+  int size;
+  for(int i=0; i<numBatches; i++){
+        ss.str("");
+    	ss << i;
+  	string imageDir = imageRootDir + ss.str() + "/" + layer;
+        if(layerType == CONV || layerType == POOL ){
+  	  size =      batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*
+                  batch_layer_params[i]["output_height"]*batch_layer_params[i]["batch_size"];
+        }
+	else{
+  	  size =      batch_layer_params[i]["output_dim"]*
+                      batch_layer_params[i]["batch_size"];
+
+        }
+  	// Read gold outputs
+  	if (readRawFile(imageDir + outname,
+                  gold_outputs,
+                  size,
+                  max_alloc))
+    	return 1;
+	ptr.push_back(gold_outputs);
+    	gold_outputs += size;
+  }
+  return 0;
+
+}
 
 float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *> golden_output, int numBatches, vector<map<string,int> >batch_layer_params, string imageRootDir, string layer, int layerType){
   

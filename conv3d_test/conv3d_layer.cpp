@@ -40,6 +40,7 @@ void conv3d_layer(float * mem,            // global memory pointer
 #pragma HLS INTERFACE s_axilite port=ic bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=s bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=k bundle=CTRL_BUS
+#pragma HLS INTERFACE s_axilite port=pad bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=relu bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=bnorm bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=input_offset
@@ -61,8 +62,8 @@ void conv3d_layer(float * mem,            // global memory pointer
     {
       float mean  = mem[parameters_offset/sizeof(float) + num_weights + oc +                o_c];
       float var   = mem[parameters_offset/sizeof(float) + num_weights + oc +  num_bnorm*1 + o_c];
-      float gamma  = mem[parameters_offset/sizeof(float)+ num_weights + oc +  num_bnorm*2 + o_c];
-      float beta = mem[parameters_offset/sizeof(float)  + num_weights + oc +  num_bnorm*3 + o_c];
+      float gamma = mem[parameters_offset/sizeof(float)+ num_weights + oc +  num_bnorm*2 + o_c];
+      float beta  = mem[parameters_offset/sizeof(float)  + num_weights + oc +  num_bnorm*3 + o_c];
       float num   =  gamma/sqrt(var + EPSILON);
       // Output Dimensions (Feature Maps)
       for (int o_d = 0; o_d < od; o_d++)
