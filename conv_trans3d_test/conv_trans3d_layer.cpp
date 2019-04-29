@@ -52,6 +52,16 @@ void conv3d_layer(float * mem,            // global memory pointer
     int num_input = b*id*ix*iy;
     int num_output = b*oc*od*ox*oy;
     int num_bnorm  = 4*oc; //mean + var + beta + ghama
+
+    int r = (k - 1) / 2; //radius;
+    int sim_x = ix*s - s +1;
+    int sim_y = iy*s - s +1;
+    int sim_d = id*s - s +1;
+    //int sim_pad = k - pad -1; // for now pad is zero di
+    //int x_border = sim_pad == 0? r : 0;
+    //int y_border = sim_pad == 0? r : 0;
+    //int d_border = sim_pad == 0? r : 0;
+
     // input weight + bias + input +
     // Batch
     for (int b_=0; b_< b; b_++)
@@ -61,9 +71,9 @@ void conv3d_layer(float * mem,            // global memory pointer
         {
             float mean  = mem[parameters_offset/sizeof(float) + num_weights + oc +                o_c];
             float var   = mem[parameters_offset/sizeof(float) + num_weights + oc +  num_bnorm*1 + o_c];
-            float gamma  = mem[parameters_offset/sizeof(float)+ num_weights + oc +  num_bnorm*2 + o_c];
-            float beta = mem[parameters_offset/sizeof(float)  + num_weights + oc +  num_bnorm*3 + o_c];
-            float num   =  gamma/sqrt(var + EPSILON);
+            float gamma = mem[parameters_offset/sizeof(float) + num_weights + oc +  num_bnorm*2 + o_c];
+            float beta  = mem[parameters_offset/sizeof(float) + num_weights + oc +  num_bnorm*3 + o_c];
+            float ratio =  gamma/sqrt(var + EPSILON);
             // Output Dimensions (Feature Maps)
             for (int o_d = 0; o_d < od; o_d++)
             {
@@ -81,19 +91,20 @@ void conv3d_layer(float * mem,            // global memory pointer
                         {
 
                             // Input Dimensions (Feature Maps)
-                            for (int i_d = o_d*s-pad, iid = 0; i_d < o_d*s-pad+k; i_d++, iid++)
+                            for (int iid = -r; iid <= r; iid++)
                             {
                                 // Input Y Dimension
-                                for (int i_y = o_y*s-pad, iiy = 0; i_y < o_y*s-pad+k; i_y++, iiy++)
+                                for (int iiy = -r; iiy <= r; iiy++)
                                 {
                                     // Input X Dimension
-                                    for (int i_x = o_x*s-pad, iix = 0; i_x < o_x*s-pad+k; i_x++, iix++)
+                                    for (int iix = -r; iix <= r; iix++)
                                     {
                                         //float ifmap = 0.0;
-                                        if((i_x > 0 || i_y > 0 || i_d > 0 )&& (i_x < ix || i_y < iy || i_d < id)){
+                                        if((o_x + iix) >= 0 && (o_y + iiy) >= 0 && (o_d+iid) >= 0 && (o_x + iix) < sim_x && (o_y+iiy) < sim_y && (o_d + iid) < sim_d)){ // boundry check
                                             //ifmap = mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x];
-                                            output_element += mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x] * //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
-                                                              mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + iid*k*k + iiy*k + iix];
+                                            if ( (o_x + iix) % s != 0 || (o_y + iiy) % s != 0 || || (o_d + iid) % s != 0) continue;
+                                            output_element += mem[input_offset/sizeof(float) +b_*id*ix*iy + (o_d +iid)/s*ix*iy + (o_y+iiy)/s*ix + (o_x+iix)/s] * //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
+                                                              mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + (r+iid)*k*k + (r+iiy)*k + r+iix];
                                         }
                                     }
                                 }
@@ -102,7 +113,7 @@ void conv3d_layer(float * mem,            // global memory pointer
                         // Write output
                         if(bnorm){
                             //TBC
-                            output_element = (output_element-mean)*num + beta;
+                            output_element = (output_element-mean)*ratio + beta;
                         }
                         if(relu) output_element = std::max(0.0f, output_element);
                         mem[output_offset/sizeof(float) + b_*od*ox*oy + o_d*ox*oy + o_y*ox + o_x] = output_element;
