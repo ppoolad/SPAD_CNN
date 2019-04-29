@@ -325,12 +325,12 @@ float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *
     	outputs = mem[i] + b*num_inputs+num_biases+num_weights;
     }
     else if(layerType == CONV3D){
-    	num_inputs = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_width"]*
+    	num_inputs =  batch_layer_params[i]["input_channel"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_width"]*
     		   batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_channel"];
     	num_biases = batch_layer_params[i]["output_channel"];
       num_bnormpars = batch_layer_params[i]["output_channel"]*4;
     	num_weights = batch_layer_params[i]["input_channel"]*batch_layer_params[i]["output_channel"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
-    	num_outputs = batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*batch_layer_params[i]["output_height"]*batch_layer_params[i]["output_channel"];
+    	num_outputs = batch_layer_params[i]["output_channel"]*batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*batch_layer_params[i]["output_height"]*batch_layer_params[i]["output_channel"];
     	totalNumOutputs += b*num_outputs;
     	outputs = mem[i] + b*num_inputs+num_biases+num_weights+num_bnormpars;
     }
