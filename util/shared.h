@@ -5,7 +5,7 @@
 #include <vector>
 #include <map>
 
-#define MAX_BATCH 10
+//#define MAX_BATCH 1
 #define NUM_BIAS_DIMENSIONS 1
 #define CONV 0
 #define FC 1
@@ -16,6 +16,10 @@ std::vector<std::map<std::string, int> > readBatchParams(std::string imageRootDi
 int readInputBatches(std::string imageRootDir, std::vector<std::map<std::string, int> > batch_layer_params, int numBatches, std::string layer, const int max_alloc, std::vector<float *> &ptr, int layerType);
 int readOutputBatches(std::string imageRootDir, std::vector<std::map<std::string, int> > batch_layer_params, int numBatches, std::string layer, const int max_alloc, std::vector<float *> &ptr, int layerType);
 
+int readInputBatchesWithNorm(std::string imageRootDir,std::vector<float *>dma_input_vec, std::vector<std::map<std::string, int> > batch_layer_params, int numBatches,std::string layer, int layer_index, std::string layer_prv, const int max_alloc, int layerType, bool ReadinputFlag);
+
+int allocate_memory(std::vector<float *> &dma_input_vec, std::vector<std::map<std::string, int> > batch_layer_params, int numBatches, int layerType);
+
 std::vector<int> readFile(const std::string fname,
                           float *& fptr,
                           const int max_alloc);
@@ -23,6 +27,12 @@ int readRawFile(const std::string fname,
                 float *& fptr,
                 const int read_alloc,
                 const int max_alloc);
+
+int readRawFileNoAlloc(const std::string fname,
+               float * fptr,
+               const int read_alloc,
+               const int max_alloc);
+
 std::map<std::string, int> readParams(const std::string fname);
 enum LayerTypes {Convolution, Pooling, InnerProduct};
 void timespec_sub(struct timespec *t1, const struct timespec *t2);
