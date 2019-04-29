@@ -35,7 +35,7 @@ int readRawFileNoAlloc(const std::string fname,
                const int max_alloc);
 
 std::map<std::string, int> readParams(const std::string fname);
-enum LayerTypes {Convolution, Pooling, InnerProduct};
+enum LayerTypes {Convolution, Pooling, InnerProduct, TrnsConvolution};
 void timespec_sub(struct timespec *t1, const struct timespec *t2);
 int read_int(volatile void* map_base, int offset);
 void write_int(volatile void* map_base, int offset, int value);

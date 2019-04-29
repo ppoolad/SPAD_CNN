@@ -44,6 +44,8 @@ std::map<std::string, int> readParams(const std::string fname)
         params[key] = InnerProduct;
       else if (!svalue.compare("Pooling"))
         params[key] = Pooling;
+      else if (!svalue.compare("TrnsConvolution"))
+        params[key] = Pooling;
       else {
         cerr << "Invalid Layer Type!\n";
         return std::map<std::string, int>();
@@ -173,7 +175,7 @@ vector<map<string, int> > readBatchParams(string imageRootDir, int numBatches, s
         ss.str("");
     	ss << i;
   	string imageDir = imageRootDir + ss.str() + "/" + layer;
-  	map<string, int> layer_params = readParams(imageDir + "/param");
+  	map<string, int> layer_params = readParams(imageDir + "/params");
 	retVec.push_back(layer_params);
    }
 
@@ -251,7 +253,7 @@ int readOutputBatches(string imageRootDir, vector<map<string, int> > batch_layer
   	             batch_layer_params[i]["batch_size"];
         }
   	// Read gold outputs
-  	if (readRawFile(imageDir + "out",
+  	if (readRawFile(imageDir + "/testnormoutput",// this is for test change it to "out",
                   gold_outputs,
                   size,
                   max_alloc))
@@ -332,7 +334,7 @@ float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *
 	
     ss.str("");
     ss << i;
-    string imageDir = imageRootDir + ss.str() + "/" + layer + "dma_out";
+    string imageDir = imageRootDir + ss.str() + "/" + layer + "/dma_out"; // not for test "dma_out"
     char * buffer = (char *)outputs;
     ofstream myFile(imageDir.c_str(), ios::out | ios::binary);
     myFile.write(buffer, b*num_outputs*sizeof(float));    
