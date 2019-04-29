@@ -274,6 +274,10 @@ int readOutputBatches(string outname, string imageRootDir, vector<map<string, in
         if(layerType == CONV || layerType == POOL ){
   	  size =      batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*
                   batch_layer_params[i]["output_height"]*batch_layer_params[i]["batch_size"];
+        }else if(layerType == CONV3D){
+          size =      batch_layer_params[i]["output_channel"]*batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*
+                      batch_layer_params[i]["output_height"]*batch_layer_params[i]["batch_size"];
+
         }
 	else{
   	  size =      batch_layer_params[i]["output_dim"]*
