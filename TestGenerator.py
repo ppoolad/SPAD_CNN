@@ -35,7 +35,7 @@ normed_var = nn.functional.batch_norm(output_var,bnormpar[0],
                                       bias=bnormpar[3])
 
 normedrelu_var = nn.functional.relu(normed_var)
-normedrelu_var.numpy().astype('float32').tofile('conv0out')
+normedrelu_var.numpy().astype('float32').tofile('conv00out')
 
 
 input_var = Variable(torch.randn(1, 1, 1024, 64, 64))

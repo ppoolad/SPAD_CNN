@@ -93,7 +93,7 @@ void conv3d_layer(float * mem,            // global memory pointer
                     //float ifmap = 0.0;
                     if((i_x > 0 && i_y > 0 && i_d > 0 )&& (i_x < ix && i_y < iy && i_d < id)){
                       //ifmap = mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x];
-                      output_element += mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x] * //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
+                      output_element += mem[input_offset/sizeof(float) +b_*ic*id*ix*iy+ i_c*id*ix*iy + i_d*ix*iy + i_y*ix + i_x] * //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
                                       mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + iid*k*k + iiy*k + iix];
                       }
                   }
@@ -106,7 +106,7 @@ void conv3d_layer(float * mem,            // global memory pointer
               output_element = (output_element-mean)*num + beta;
             }
             if(relu) output_element = std::max(0.0f, output_element);
-            mem[output_offset/sizeof(float) + b_*od*ox*oy + o_d*ox*oy + o_y*ox + o_x] = output_element;
+            mem[output_offset/sizeof(float) + b_*oc*od*ox*oy + o_c*od*ox*oy+ o_d*ox*oy + o_y*ox + o_x] = output_element;
           }
         }
       }
