@@ -27,7 +27,7 @@ bnorm_b = np.fromfile('data/test/batch_0/conv3d/conv0.1.bias',dtype='float32')
 
 bnormpar = torch.tensor([bnorm_mean, bnorm_var, bnorm_w, bnorm_b])
 
-output_var = nn.functional.conv3d(input_var,filter_var,bias=biases_var, padding=4)
+output_var = nn.functional.conv3d(input_var,filter_var,bias=biases_var)
 
 normed_var = nn.functional.batch_norm(output_var,bnormpar[0],
                                       bnormpar[1],
