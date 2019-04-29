@@ -61,6 +61,7 @@ std::map<std::string, int> readParams(const std::string fname)
  // std::cout << "DONE\n";
   return params;
 }
+
 int readRawFile(const string fname,
                               float *& fptr,
                               const int read_alloc,
@@ -172,7 +173,7 @@ vector<map<string, int> > readBatchParams(string imageRootDir, int numBatches, s
         ss.str("");
     	ss << i;
   	string imageDir = imageRootDir + ss.str() + "/" + layer;
-  	map<string, int> layer_params = readParams(imageDir + "/params");
+  	map<string, int> layer_params = readParams(imageDir + "/param");
 	retVec.push_back(layer_params);
    }
 
@@ -236,17 +237,21 @@ int readOutputBatches(string imageRootDir, vector<map<string, int> > batch_layer
         ss.str("");
     	ss << i;
   	string imageDir = imageRootDir + ss.str() + "/" + layer;
-        if(layerType == CONV || layerType == POOL ){
+  	if(layerType == CONV || layerType == POOL ){
   	  size =      batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*
                   batch_layer_params[i]["output_height"]*batch_layer_params[i]["batch_size"];
-        }
-	else{
-  	  size =      batch_layer_params[i]["output_dim"]*
-                      batch_layer_params[i]["batch_size"];
-
+  	}
+     else if(layerType == CONV3D ){
+          size =  batch_layer_params[i]["output_channel"]*
+                  batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*
+                  batch_layer_params[i]["output_height"]*batch_layer_params[i]["batch_size"];
+      }
+	else{ //POOL
+  	  size =     batch_layer_params[i]["output_dim"]*
+  	             batch_layer_params[i]["batch_size"];
         }
   	// Read gold outputs
-  	if (readRawFile(imageDir + "/output",
+  	if (readRawFile(imageDir + "out",
                   gold_outputs,
                   size,
                   max_alloc))
@@ -289,7 +294,7 @@ float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *
     	num_inputs = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_width"]*
     		   batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_channel"];
     	num_biases = batch_layer_params[i]["output_channel"];
-      num_bnormpars = batch_layer_params[i]["output_channel"]*4;
+        num_bnormpars = batch_layer_params[i]["output_channel"]*4;
     	num_weights = batch_layer_params[i]["input_channel"]*batch_layer_params[i]["output_channel"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
     	num_outputs = batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*batch_layer_params[i]["output_height"]*batch_layer_params[i]["output_channel"];
     	totalNumOutputs += b*num_outputs;
@@ -327,15 +332,13 @@ float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *
 	
     ss.str("");
     ss << i;
-    string imageDir = imageRootDir + ss.str() + "/" + layer + "/dma_out";
+    string imageDir = imageRootDir + ss.str() + "/" + layer + "dma_out";
     char * buffer = (char *)outputs;
     ofstream myFile(imageDir.c_str(), ios::out | ios::binary);
     myFile.write(buffer, b*num_outputs*sizeof(float));    
     myFile.close();
   }
     return total/(totalNumOutputs);
-
-
 
 }
 
@@ -368,4 +371,150 @@ void timespec_sub(struct timespec *t1, const struct timespec *t2)
     t1->tv_sec--;
     t1->tv_nsec += 1000000000;
   }
+}
+
+////////// added functions ////////
+int readRawFileNoAlloc(const string fname,
+                              float * fptr,
+                              const int read_alloc,
+                              const int max_alloc)
+{
+  int retval = 0;
+  std::cout << "Reading: " << fname << " size: " << read_alloc << std::endl;
+  ifstream in_file(fname.c_str(), ios::in | ios::binary);
+  if (in_file.is_open())
+  {
+    //fptr = new float[max_alloc];
+    if (read_alloc <= max_alloc) {
+      if (!in_file.read(reinterpret_cast<char*>(fptr), sizeof(float)*read_alloc))
+      {
+    	  std::cout << "Read Error in myRead" << endl;
+          retval = 1;
+      }
+    } else {
+      cerr << "Desired dimensions too large: " << read_alloc << " > " << max_alloc << "\n";
+      retval = 1;
+    }
+    in_file.close();
+  }
+  else
+    cerr << "Couldn't open file: " << fname << endl;
+
+  //if (retval) delete [] fptr;
+  return retval;
+}
+
+int readInputBatchesWithNorm(string imageRootDir,vector<float *>dma_input_vec, vector<map<string, int> > batch_layer_params, int numBatches, string layer, int layer_index, string layer_prv, const int max_alloc, int layerType, bool ReadinputFlag){
+  ostringstream ss, sindex, sindexplus;
+  // Read inputs
+  // Inputs are packed together as weights, biases and input values from different places
+  // Allocate enough space for outputs
+  sindex.str("");
+  sindexplus.str("");
+  sindex << layer_index;
+  sindexplus << (layer_index+1);
+
+  for(int i=0; i<numBatches; i++){
+        ss.str("");
+        ss << i;
+        int input_size;
+        int weight_size;
+        int bias_size;
+        float * dma_input = dma_input_vec[i];
+        string imageDir     = imageRootDir + ss.str()+ "/" + layer+ "." + sindex.str();
+        string imageDir_plus= imageRootDir + ss.str()+ "/" + layer+ "." + sindexplus.str();
+        string imageDir_prv = imageRootDir + ss.str() + "/" + layer_prv;
+            if(layerType == CONV){
+                  weight_size = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["output_dim"]*
+                                batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
+                  bias_size   = batch_layer_params[i]["output_dim"];
+                  input_size  = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_width"]*
+                                batch_layer_params[i]["input_height"]*batch_layer_params[i]["batch_size"];
+
+                  if (readRawFile(imageDir + "/weights", dma_input, weight_size, max_alloc))
+                    return 1;
+                  if (readRawFileNoAlloc(imageDir + "/biases", dma_input, bias_size, weight_size))
+                    return 1;
+                  if (readRawFileNoAlloc(imageDir_prv + "/dma_out", dma_input, input_size, weight_size+bias_size))
+                    return 1;
+                  printf("ptr adr %p \n", dma_input);
+            }
+            else if(layerType == CONV3D){
+                weight_size = batch_layer_params[i]["input_channel"]*batch_layer_params[i]["output_channel"]*
+                              batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
+                bias_size   = batch_layer_params[i]["output_channel"];
+                input_size  = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_width"]*batch_layer_params[i]["input_height"]*
+                              batch_layer_params[i]["input_channel"]*
+                              batch_layer_params[i]["batch_size"];
+
+                if (readRawFileNoAlloc(imageDir + ".weight", dma_input, weight_size, max_alloc))
+                    return 1;
+                dma_input += weight_size;
+                if (readRawFileNoAlloc(imageDir + ".bias", dma_input, bias_size, max_alloc))
+                    return 1;
+                dma_input += bias_size;
+                if (readRawFileNoAlloc(imageDir_plus + ".running_mean", dma_input, input_size, weight_size+bias_size))
+                    return 1;
+                dma_input += bias_size;
+                if (readRawFileNoAlloc(imageDir_plus + ".running_var", dma_input, input_size, weight_size+bias_size))
+                    return 1;
+                dma_input += bias_size;
+                if (readRawFileNoAlloc(imageDir_plus + ".weight", dma_input, input_size, weight_size+bias_size))
+                    return 1;
+                dma_input += bias_size;
+                if (readRawFileNoAlloc(imageDir_plus + ".bias", dma_input, input_size, weight_size+bias_size))
+                    return 1;
+                dma_input += bias_size;
+                if (ReadinputFlag){
+                    if (readRawFileNoAlloc(imageDir_prv + ".dma_out", dma_input, input_size, weight_size+bias_size))
+                        return 1;
+                }
+                printf("ptr adr %p \n", dma_input);
+            }
+      }
+      return 0;
+
+}
+
+int allocate_memory( vector<float *> &dma_input_vec, vector<map<string, int> > batch_layer_params, int numBatches, int layerType){
+    int output_size, input_size ,weight_size, bias_size, size;
+    ostringstream ss;
+
+    for(int i=0; i<numBatches; i++) {
+        ss.str("");
+        ss << i;
+        if (layerType == CONV)
+        {
+            weight_size = batch_layer_params[i]["input_dim"] * batch_layer_params[i]["output_dim"] *
+                          batch_layer_params[i]["kernel_size"] * batch_layer_params[i]["kernel_size"];
+            bias_size = batch_layer_params[i]["output_dim"];
+            input_size = batch_layer_params[i]["input_dim"] * batch_layer_params[i]["input_width"] *
+                         batch_layer_params[i]["input_height"] * batch_layer_params[i]["batch_size"];
+            output_size = batch_layer_params[i]["output_dim"] * batch_layer_params[i]["output_width"] *
+                          batch_layer_params[i]["output_height"] * batch_layer_params[i]["batch_size"];
+
+            size = weight_size + bias_size + input_size + output_size;
+
+        } else if (layerType == CONV3D) {
+            weight_size = batch_layer_params[i]["input_channel"] * batch_layer_params[i]["output_channel"] *
+                          batch_layer_params[i]["kernel_size"] * batch_layer_params[i]["kernel_size"] *
+                          batch_layer_params[i]["kernel_size"];
+            bias_size = batch_layer_params[i]["output_channel"];
+            input_size = batch_layer_params[i]["input_dim"] * batch_layer_params[i]["input_width"] *
+                         batch_layer_params[i]["input_height"] *
+                         batch_layer_params[i]["input_channel"] *
+                         batch_layer_params[i]["batch_size"];
+            output_size= batch_layer_params[i]["output_dim"] * batch_layer_params[i]["output_width"] *
+                         batch_layer_params[i]["output_height"] *
+                         batch_layer_params[i]["output_channel"] *
+                         batch_layer_params[i]["batch_size"];
+
+            size = weight_size + 5*bias_size + input_size + output_size;
+        }
+
+        float* ptr = new float[size];
+        dma_input_vec.push_back(ptr);
+    }
+
+    return size;
 }
