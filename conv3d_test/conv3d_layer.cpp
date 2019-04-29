@@ -106,7 +106,7 @@ void conv3d_layer(float * mem,            // global memory pointer
               output_element = (output_element-mean)*num + beta;
             }
             if(relu) output_element = std::max(0.0f, output_element);
-            mem[output_offset/sizeof(float) + b_*od*ox*oy + o_d*ox*oy + o_y*ox + o_x] = output_element;
+            mem[output_offset/sizeof(float) + b_*oc*od*ox*oy + o_c*od*ox*oy+ o_d*ox*oy + o_y*ox + o_x] = output_element;
           }
         }
       }
