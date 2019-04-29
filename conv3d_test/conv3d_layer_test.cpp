@@ -86,6 +86,7 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
     int s = layer_params["stride"];
     int oc = layer_params["output_channel"];
     int ic = layer_params["input_channel"];
+    int pad = layer_params["pad"];
     
 #ifdef PRINT
     cout << "Begin Test\n"
@@ -106,7 +107,7 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
                   b, od, ox, oy, oc, ic, id, ix, iy, s, k,1,1,1);
     #else
     conv3d_layer(dma_input, sizeof(float)*(num_biases + num_weights + num_bnormparams), 0 ,sizeof(float)*(b*num_inputs+num_biases + num_weights + num_bnormparams),
-               b, od, ox, oy, oc, ic, id, ix, iy, s, k,4,1,1);
+               b, od, ox, oy, oc, ic, id, ix, iy, s, k,pad,1,1);
     #endif
 
   }
@@ -142,16 +143,16 @@ int main(int argc, char** argv)
   // }else{
     for(int i = 0; i < numBatches; i++)
     {
-      static float dma_in[MAX_WEIGHT_SIZE+2*MAX_OUTPUT_CHANNELS+MAX_CONV_INPUT+MAX_CONV_OUTPUT];
-      
+      //static float dma_in[MAX_WEIGHT_SIZE+5*MAX_OUTPUT_CHANNELS+MAX_CONV_INPUT+MAX_CONV_OUTPUT];
+      float* dma_in = new float[MAX_WEIGHT_SIZE+5*MAX_OUTPUT_CHANNELS+MAX_CONV_INPUT+MAX_CONV_OUTPUT];
       float * ptr = dma_in;
       ss.str("");
         ss << i;
       imageDir = imageRootDir + ss.str() + "/" + layer;
       imageDir_current = imageRootDir + ss.str() + "/" + layer;
   		int size = batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]+
-	               batch_layer_params[i]["output_channel"] +
-	               batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_width"];
+	               batch_layer_params[i]["output_channel"] + 4*batch_layer_params[i]["output_channel"]+
+	               batch_layer_params[i]["input_channel"]*batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_width"];
 
       int wsize = batch_layer_params[i]["output_channel"]*batch_layer_params[i]["input_channel"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
       int bsize = batch_layer_params[i]["output_channel"];
