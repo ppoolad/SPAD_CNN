@@ -241,7 +241,7 @@ int readOutputBatches(string imageRootDir, vector<map<string, int> > batch_layer
   	  size =      batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*
                   batch_layer_params[i]["output_height"]*batch_layer_params[i]["batch_size"];
   	}
-     else if(layerType == CONV3D ){
+     else if(layerType == CONV3D || layerType == CONV3DT ){
           size =  batch_layer_params[i]["output_channel"]*
                   batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*
                   batch_layer_params[i]["output_height"]*batch_layer_params[i]["batch_size"];
@@ -290,7 +290,7 @@ float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *
     	totalNumOutputs += b*num_outputs;
     	outputs = mem[i] + b*num_inputs+num_biases+num_weights;
     }
-    else if(layerType == CONV3D){
+    else if(layerType == CONV3D || layerType == CONV3DT){
     	num_inputs = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_width"]*
     		   batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_channel"];
     	num_biases = batch_layer_params[i]["output_channel"];
@@ -439,7 +439,7 @@ int readInputBatchesWithNorm(string imageRootDir,vector<float *>dma_input_vec, v
                     return 1;
                   printf("ptr adr %p \n", dma_input);
             }
-            else if(layerType == CONV3D){
+            else if(layerType == CONV3D || layerType == CONV3DT){
                 weight_size = batch_layer_params[i]["input_channel"]*batch_layer_params[i]["output_channel"]*
                               batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
                 bias_size   = batch_layer_params[i]["output_channel"];
@@ -495,7 +495,7 @@ int allocate_memory( vector<float *> &dma_input_vec, vector<map<string, int> > b
 
             size = weight_size + bias_size + input_size + output_size;
 
-        } else if (layerType == CONV3D) {
+        } else if (layerType == CONV3D || layerType == CONV3DT) {
             weight_size = batch_layer_params[i]["input_channel"] * batch_layer_params[i]["output_channel"] *
                           batch_layer_params[i]["kernel_size"] * batch_layer_params[i]["kernel_size"] *
                           batch_layer_params[i]["kernel_size"];
