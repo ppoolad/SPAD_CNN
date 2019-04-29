@@ -117,6 +117,7 @@ int main(int argc, char** argv)
         ss << i;
         imageDir = imageRootDir + ss.str() + "/" + layer;
         imageDir_current = imageRootDir + ss.str() + "/" + layer;
+        //cout << "kernel size = " << batch_layer_params[i]["kernel_size"] << " output_channel = " << batch_layer_params[i]["output_channel"] << endl;
         int size = batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]+
                    batch_layer_params[i]["output_channel"] +
                    batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_width"];
