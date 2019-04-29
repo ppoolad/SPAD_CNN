@@ -1,13 +1,13 @@
 output_height 20
 name conv3d
-stride 1
+stride 2
 output_channel 1
 input_channel 1
 output_dim 36
 batch_size 1
 enable_relu 1
 input_width 16
-pad 1
+pad 0
 input_height 16
 input_dim 32
 output_width 20
