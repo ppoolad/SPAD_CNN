@@ -1,0 +1,18 @@
+name up1.0
+type TransConvolution
+output_width 64
+output_height 64
+output_dim 1024
+output_channel 36
+input_width 32
+input_height 32
+input_dim 512
+input_channel 36
+kernel_size 6
+stride 1
+pad 0
+batch_size 1
+enable_relu 1
+
+
+

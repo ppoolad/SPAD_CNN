@@ -1,0 +1,18 @@
+name up3.0
+type TransConvolution
+output_width 16
+output_height 16
+output_dim 256
+output_channel 16
+input_width 8
+input_height 8
+input_dim 128
+input_channel 16
+kernel_size 6
+stride 1
+pad 0
+batch_size 1
+enable_relu 1
+
+
+
