@@ -40,6 +40,7 @@ void conv3d_layer(float * mem,            // global memory pointer
 #pragma HLS INTERFACE s_axilite port=ic bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=s bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=k bundle=CTRL_BUS
+#pragma HLS INTERFACE s_axilite port=pad bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=relu bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=bnorm bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=input_offset
@@ -49,7 +50,7 @@ void conv3d_layer(float * mem,            // global memory pointer
  
   int num_weights = ic*oc*k*k*k;
   int num_biases = oc;
-  int num_input = b*id*ix*iy;
+  int num_input = b*ic*id*ix*iy;
   int num_output = b*oc*od*ox*oy;
   int num_bnorm  = oc; //mean + var + beta + ghama
   // input weight + bias + input + 
@@ -61,8 +62,8 @@ void conv3d_layer(float * mem,            // global memory pointer
     {
       float mean  = mem[parameters_offset/sizeof(float) + num_weights + oc +                o_c];
       float var   = mem[parameters_offset/sizeof(float) + num_weights + oc +  num_bnorm*1 + o_c];
-      float gamma  = mem[parameters_offset/sizeof(float)+ num_weights + oc +  num_bnorm*2 + o_c];
-      float beta = mem[parameters_offset/sizeof(float)  + num_weights + oc +  num_bnorm*3 + o_c];
+      float gamma = mem[parameters_offset/sizeof(float)+ num_weights + oc +  num_bnorm*2 + o_c];
+      float beta  = mem[parameters_offset/sizeof(float)  + num_weights + oc +  num_bnorm*3 + o_c];
       float num   =  gamma/sqrt(var + EPSILON);
       // Output Dimensions (Feature Maps)
       for (int o_d = 0; o_d < od; o_d++)
@@ -90,9 +91,9 @@ void conv3d_layer(float * mem,            // global memory pointer
                   for (int i_x = o_x*s-pad, iix = 0; i_x < o_x*s-pad+k; i_x++, iix++)
                   {
                     //float ifmap = 0.0;
-                    if((i_x > 0 || i_y > 0 || i_d > 0 )&& (i_x < ix || i_y < iy || i_d < id)){
+                    if((i_x >= 0) && (i_y >= 0) && (i_d >= 0) && (i_x < ix) && (i_y < iy) && (i_d < id)){
                       //ifmap = mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x];
-                      output_element += mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x] * //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
+                      output_element += mem[input_offset/sizeof(float) +b_*ic*id*ix*iy+ i_c*id*ix*iy + i_d*ix*iy + i_y*ix + i_x] * //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
                                       mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + iid*k*k + iiy*k + iix];
                       }
                   }
@@ -105,7 +106,7 @@ void conv3d_layer(float * mem,            // global memory pointer
               output_element = (output_element-mean)*num + beta;
             }
             if(relu) output_element = std::max(0.0f, output_element);
-            mem[output_offset/sizeof(float) + b_*od*ox*oy + o_d*ox*oy + o_y*ox + o_x] = output_element;
+            mem[output_offset/sizeof(float) + b_*oc*od*ox*oy + o_c*od*ox*oy+ o_d*ox*oy + o_y*ox + o_x] = output_element;
           }
         }
       }

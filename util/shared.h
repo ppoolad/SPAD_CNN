@@ -15,6 +15,7 @@ float get_mean_squared_error_and_write_file(std::vector<float *> mem, std::vecto
 std::vector<std::map<std::string, int> > readBatchParams(std::string imageRootDir, int numBatches, std::string layer);
 int readInputBatches(std::string imageRootDir, std::vector<std::map<std::string, int> > batch_layer_params, int numBatches, std::string layer, const int max_alloc, std::vector<float *> &ptr, int layerType);
 int readOutputBatches(std::string imageRootDir, std::vector<std::map<std::string, int> > batch_layer_params, int numBatches, std::string layer, const int max_alloc, std::vector<float *> &ptr, int layerType);
+int readOutputBatches(std::string outname, std::string imageRootDir, std::vector<std::map<std::string, int> > batch_layer_params, int numBatches, std::string layer, const int max_alloc, std::vector<float *> &ptr, int layerType);
 
 std::vector<int> readFile(const std::string fname,
                           float *& fptr,

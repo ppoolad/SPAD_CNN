@@ -54,9 +54,9 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
   
 
 
-  int num_outputs = layer_params["output_dim"]*layer_params["output_width"]*
+  int num_outputs = layer_params["output_channel"]*layer_params["output_dim"]*layer_params["output_width"]*
                     layer_params["output_height"];
-  int num_inputs = layer_params["input_dim"]*layer_params["input_width"]*
+  int num_inputs = layer_params["input_channel"]*layer_params["input_dim"]*layer_params["input_width"]*
                    layer_params["input_height"];
   int num_weights = layer_params["input_channel"]*layer_params["output_channel"]*
                     layer_params["kernel_size"]*layer_params["kernel_size"]*layer_params["kernel_size"];
@@ -86,6 +86,7 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
     int s = layer_params["stride"];
     int oc = layer_params["output_channel"];
     int ic = layer_params["input_channel"];
+    int pad = layer_params["pad"];
     
 #ifdef PRINT
     cout << "Begin Test\n"
@@ -106,7 +107,7 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
                   b, od, ox, oy, oc, ic, id, ix, iy, s, k,1,1,1);
     #else
     conv3d_layer(dma_input, sizeof(float)*(num_biases + num_weights + num_bnormparams), 0 ,sizeof(float)*(b*num_inputs+num_biases + num_weights + num_bnormparams),
-               b, od, ox, oy, oc, ic, id, ix, iy, s, k,1,1,1);
+               b, od, ox, oy, oc, ic, id, ix, iy, s, k,pad,1,1);
     #endif
 
   }
@@ -142,30 +143,30 @@ int main(int argc, char** argv)
   // }else{
     for(int i = 0; i < numBatches; i++)
     {
-      static float dma_in[MAX_WEIGHT_SIZE+2*MAX_OUTPUT_CHANNELS+MAX_CONV_INPUT+MAX_CONV_OUTPUT];
-      
+      //static float dma_in[MAX_WEIGHT_SIZE+5*MAX_OUTPUT_CHANNELS+MAX_CONV_INPUT+MAX_CONV_OUTPUT];
+      float* dma_in = new float[MAX_WEIGHT_SIZE+5*MAX_OUTPUT_CHANNELS+MAX_CONV_INPUT+MAX_CONV_OUTPUT];
       float * ptr = dma_in;
       ss.str("");
         ss << i;
       imageDir = imageRootDir + ss.str() + "/" + layer;
       imageDir_current = imageRootDir + ss.str() + "/" + layer;
   		int size = batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]+
-	               batch_layer_params[i]["output_channel"] +
-	               batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_width"];
+	               batch_layer_params[i]["output_channel"] + 4*batch_layer_params[i]["output_channel"]+
+	               batch_layer_params[i]["input_channel"]*batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_width"];
 
-      int wsize = batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
+      int wsize = batch_layer_params[i]["output_channel"]*batch_layer_params[i]["input_channel"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
       int bsize = batch_layer_params[i]["output_channel"];
-      int isize = batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_width"];
+      int isize = batch_layer_params[i]["input_channel"]*batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_width"];
       string fname;
       /*Reading weights*/
-      if (myreadFile(imageDir_current + "/testfilters", ptr, wsize, MAX_WEIGHT_SIZE )) {
+      if (myreadFile(imageDir_current + "/conv0.0.weight", ptr, wsize, MAX_WEIGHT_SIZE )) {
         std::cout << "Read Error";
         return 1;
       }
 
       ptr += wsize;
       /*Reading Biases*/
-      if (myreadFile(imageDir_current + "/testbiases", ptr, bsize, MAX_CONV_OUTPUT )) {
+      if (myreadFile(imageDir_current + "/conv0.0.bias", ptr, bsize, MAX_CONV_OUTPUT )) {
         std::cout << "Read Error";
         return 1;
       }
@@ -173,13 +174,29 @@ int main(int argc, char** argv)
       ptr += bsize;
 
       /*reading bnorm params*/
-      if (myreadFile(imageDir_current + "/bnormparams", ptr, bsize*4, MAX_CONV_OUTPUT )) {
+      if (myreadFile(imageDir_current + "/conv0.1.running_mean", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
         std::cout << "Read Error";
         return 1;
       }
-      ptr += bsize*4;
+      ptr += bsize;
+      if (myreadFile(imageDir_current + "/conv0.1.running_var", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
+        std::cout << "Read Error";
+        return 1;
+      }
+      ptr += bsize;
+      if (myreadFile(imageDir_current + "/conv0.1.weight", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
+        std::cout << "Read Error";
+        return 1;
+      }
+      ptr += bsize;
+      if (myreadFile(imageDir_current + "/conv0.1.bias", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
+        std::cout << "Read Error";
+        return 1;
+      }      
+
+      ptr += bsize;
       /*Reading Inputs*/
-      if (myreadFile(imageDir_current + "/testinput", ptr, isize, 1*MAX_CONV_INPUT )) {
+      if (myreadFile(imageDir_current + "/spadfile", ptr, isize, 1*MAX_CONV_INPUT )) {
         std::cout << "Read Error";
         return 1;
       }
@@ -193,7 +210,7 @@ int main(int argc, char** argv)
   //}
 
 
-  if(readOutputBatches(imageRootDir, batch_layer_params, numBatches, layer, 1*MAX_CONV_OUTPUT, gold_outputs_vec, CONV)) return 1;
+  if(readOutputBatches("/conv00out",imageRootDir, batch_layer_params, numBatches, layer, 1*MAX_CONV_OUTPUT, gold_outputs_vec, CONV3D)) return 1;
 
   auto start = chrono::system_clock::now(); 
   for(int i=0; i<numBatches; i++){
