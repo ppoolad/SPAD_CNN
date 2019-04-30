@@ -4,7 +4,8 @@
 #include <vector>
 #include <map>
 #include <string>
-#include "total_SPAD_test.h"
+#include "constants.h"
+#include "total_vgg_test.h"
 #include "util/shared.h"
 #include <sstream>
 #include <chrono>
@@ -19,8 +20,8 @@ using namespace std;
 
 int run_single_test_bytype(string imageDir, map<string, int> layer_params, float * &dma_input, float * gold_outputs, int layerType){
 
-    if(layerType == CONV){
-        if(run_single_test_conv(imageDir, layer_params, dma_input, gold_outputs)!=0)
+    if(layerType == CONV3DT){
+        if(run_single_test_conv_trans3d(imageDir, layer_params, dma_input, gold_outputs)!=0)
             return 1;
     }
     else if (layerType == CONV3D)
@@ -89,7 +90,7 @@ int main(int argc, char** argv)
                       << endl;
         }
 
-        if (readOutputBatches(imageRootDir, batch_layer_params, numBatches, layers[l] , MAX_BATCH*MAX_CONV_OUTPUT,
+        if (readOutputBatches(imageRootDir, batch_layer_params, numBatches, layers[l] , MAX_BATCH*CONV3D_MAX_CONV_OUTPUT,
                               gold_outputs_vec, layers_type[l]))
             return 1;
         float avg_error = get_mean_squared_error_and_write_file(dma_input_vec, gold_outputs_vec, numBatches,
