@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
 	}
 	printf("\nApproximate elapsed time: %g seconds\n", 0.005f*sleepcounts);
 	
-	cleanup:`
+	cleanup:
 	if (map_base != NULL) munmap(map_base, MAP_SIZE);
 	if (ctrl_reg_fd != -1) close(ctrl_reg_fd);
 	return ret;

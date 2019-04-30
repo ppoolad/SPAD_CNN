@@ -52,13 +52,6 @@ void read_file(char const *xdma_base, char const* filepath, int addr, int len) {
 	//aligned memory allocation
 	posix_memalign((void**) &data, 4096, len + 4096); 
 	
-	//Check buffer was successfully created
-	if (memalign_ret != 0) {
-		printf("Error: in txFile, posix_memalign failed with code %s", strerror(memalign_ret));
-		ret = -1; //Error
-		goto txfile_cleanup;
-	}
-
 	//Read data from FPGA memory over PCI 
 	lseek(dma_from_device_fd, addr, SEEK_SET);
 	read(dma_from_device_fd, data, len);
@@ -71,7 +64,7 @@ void read_file(char const *xdma_base, char const* filepath, int addr, int len) {
 
 
 int main(int argc, char **argv) {
-	int addr;
+	int addr, len;
 	char const *xdma_base = getenv("XDMA"); //Is /dev/xdma1 on my machine
 	sscanf(argv[2], "%d", &addr);
 	read_file(xdma_base, argv[1], addr, len);

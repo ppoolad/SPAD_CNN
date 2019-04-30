@@ -68,15 +68,14 @@ int main(int argc, char **argv) {
 	int ctrl_reg_fd = open(ctrl_reg_path, O_RDWR | O_SYNC);
 	if (ctrl_reg_fd == -1) {
 		char line[80];
-		sprintf(line, "Could not open 
-		file %s", ctrl_reg_path);
+		sprintf(line, "Could not open file %s", ctrl_reg_path);
 		perror(line);
 		close(ctrl_reg_fd);
 		return 0;
 	}
 	
 	//mmap the device file
-	map_base = mmap(0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, ctrl_fd, 0);
+	map_base = mmap(0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, ctrl_reg_fd, 0);
 
 	if (map_base == (void *)-1) {
 		perror("Could not mmap device file");
@@ -113,12 +112,12 @@ int main(int argc, char **argv) {
 		sscanf(argv[1], "%x", &addr);
 		if (addr < 0) {
 			printf("Error: invalid address \"%s\"", argv[1]);
-			goto cleanup;
+			return 0;
 		}
 		sscanf(argv[2], "%d", &value);
 		if (value < 0) {
 			printf("Error: invalid value \"%s\"", argv[2]);
-			goto cleanup;
+			return 0;
 		}
 		writeint(map_base, addr, value);
 		printf("Wrote %d to address 0x%x\n", value, addr);
@@ -126,3 +125,4 @@ int main(int argc, char **argv) {
 	
 	return 0;
 }
+
