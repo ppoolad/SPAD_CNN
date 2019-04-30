@@ -1,15 +1,18 @@
-output_height 60
-name conv3d
-stride 1
-output_channel 1
-input_channel 1
-output_dim 1020
-batch_size 1
-enable_relu 1
+name conv0.0
+type Convolution
+output_width 64
+output_height 64
+output_dim 1024
+output_channel 4
 input_width 64
-pad 1
 input_height 64
 input_dim 1024
-output_width 60
-type Convolution
-kernel_size 5
+input_channel 1
+kernel_size 9
+stride 1
+pad 0
+batch_size 1
+enable_relu 1
+
+
+
