@@ -287,7 +287,7 @@ float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *
     float * outputs;
     if(layerType == CONV){
     	num_inputs = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_width"]*
-    		   batch_layer_params[i]["input_height"];
+        batch_layer_params[i]["input_height"];
     	num_biases = batch_layer_params[i]["output_dim"];
     	num_weights = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["output_dim"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
     	num_outputs = batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*batch_layer_params[i]["output_height"];
@@ -296,7 +296,7 @@ float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *
     }
     else if(layerType == CONV3D || layerType == CONV3DT){
     	num_inputs = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_width"]*
-    		   batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_channel"];
+        batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_channel"];
     	num_biases = batch_layer_params[i]["output_channel"];
         num_bnormpars = batch_layer_params[i]["output_channel"]*4;
     	num_weights = batch_layer_params[i]["input_channel"]*batch_layer_params[i]["output_channel"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
@@ -316,7 +316,7 @@ float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *
     }
     else { //POOL
     	num_inputs = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_width"]*
-    		   batch_layer_params[i]["input_height"];
+        batch_layer_params[i]["input_height"];
     	num_outputs = batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*batch_layer_params[i]["output_height"];
     	totalNumOutputs += b*num_outputs;
     	outputs = mem[i] + b*num_inputs;
@@ -331,9 +331,9 @@ float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *
       int h3 = batch_layer_params[i]["output_height"];
       int c2 = batch_layer_params[i]["output_channel"];
       if (err > 0.1) {
-          int w4_2 = j%(b1*c2*h3);
-          int h3_2 = (j/w4) % (b1*c2);
-          int c2_2 = (j/w4/h3) % b1;
+          int w4_2 = j%(w4);
+          int h3_2 = (j/w4) % (h3);
+          int c2_2 = (j/(w4*h3)) % c2;
           std::cout << "output[" << c2_2 << "][" << h3_2 << "][" << w4_2 << "] = "<< outputs[j] << "VS" << golden_output[i][j]<< '\n';
       }
 #endif
