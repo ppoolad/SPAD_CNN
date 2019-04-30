@@ -1,0 +1,18 @@
+name conv2.0
+type Convolution
+output_width 16
+output_height 16
+output_dim 256
+output_channel 12
+input_width 16
+input_height 16
+input_dim 256
+input_channel 1
+kernel_size 5
+stride 1
+pad 0
+batch_size 1
+enable_relu 1
+
+
+
