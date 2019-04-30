@@ -1,0 +1,12 @@
+0x00010 0 : Data signal of input_offset (in puts have been written into 0, has to match the value specified in bash script)
+0x00020 17000000 : Data signal of output_offset (17M because size of inputs is around 16M)
+0x00028 1 : Data signal of b
+0x00030 1024 : Data signal of od
+0x00038 64 : Data signal of ox
+0x00040 64 : Data signal of oy
+0x00048 4 : Data signal of oc
+0x00050 4 : Data signal of ic
+0x00058 64 : Data signal of id
+0x00060 1024 : Data signal of ix
+0x00068 64 : Data signal of iy
+0x00070 1 : Data signal of s
