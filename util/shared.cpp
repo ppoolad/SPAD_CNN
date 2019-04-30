@@ -255,7 +255,7 @@ int readOutputBatches(string imageRootDir, vector<map<string, int> > batch_layer
   	             batch_layer_params[i]["batch_size"];
         }
   	// Read gold outputs
-  	if (readRawFile(imageDir + "/testnormoutput",// this is for test change it to "out",
+  	if (readRawFile(imageDir + "/testoutput",// this is for test change it to "out",
                   gold_outputs,
                   size,
                   max_alloc))

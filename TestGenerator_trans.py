@@ -25,7 +25,9 @@ biases_var.cpu().numpy().astype('float32').tofile('testbiases')
 b = biases_var.numpy()
 output_var = nn.functional.conv_transpose3d(input_var,filter_var,bias=biases_var)
 output_var.cpu().numpy().astype('float32').tofile('testoutput')
+print(input_var.shape)
 print(output_var.shape)
+
 
 run_mean = 5
 run_var = 1

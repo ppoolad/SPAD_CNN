@@ -110,7 +110,7 @@ int main(int argc, char** argv)
     // }else{
     for(int i = 0; i < numBatches; i++)
     {
-        static float dma_in[MAX_WEIGHT_SIZE+2*MAX_OUTPUT_CHANNELS+MAX_CONV_INPUT+MAX_CONV_OUTPUT];
+        static float dma_in[MAX_WEIGHT_SIZE+5*MAX_OUTPUT_CHANNELS+MAX_CONV_INPUT+MAX_CONV_OUTPUT];
 
         float * ptr = dma_in;
         ss.str("");

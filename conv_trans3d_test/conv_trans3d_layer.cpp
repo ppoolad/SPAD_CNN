@@ -105,17 +105,20 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
                                     for (int iix = -r; iix <= r; iix++)
                                     {
                                         //float ifmap = 0.0;
-                                        if((o_x + iix)/s >= 0 && (o_y + iiy)/s >= 0 && (o_d+iid)/s >= 0 && (o_x + iix)/s < ix && (o_y+iiy)/s < iy && (o_d + iid)/s < id){ // boundry check
+                                        int i_x = (o_x+iix)/s;
+                                        int i_y = (o_y+iiy)/s;
+                                        int i_d = (o_d+iid)/s;
+                                        if((o_x + iix) >= 0 && (o_y + iiy) >= 0 && (o_d+iid) >= 0 && (o_x + iix) < sim_x && (o_y+iiy) < sim_y && (o_d + iid) < sim_d ){ // boundry check
                                             //ifmap = mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x];
                                             if ( (o_x + iix) % s != 0 || (o_y + iiy) % s != 0 || (o_d + iid) % s != 0) continue;
                                             float prev_out = output_element;
-                                            output_element += mem[input_offset/sizeof(float) +b_*id*ix*iy + (o_d +iid)/s*ix*iy + (o_y+iiy)/s*ix + (o_x+iix)/s] * //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
+                                            output_element += mem[input_offset/sizeof(float)+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]; //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
                                                               mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + (r+iid)*k*k + (r+iiy)*k + r+iix];
                                             #ifdef PRINT
-                                            cout << "output[" << o_d << "][" << o_y << "][" << o_x <<  "] += input" << "[" << o_d +iid << "][" << o_y+iiy << "][" << o_x+iix
-                                                 << "] * filter[" << "[" << r+iid << "][" << r+iiy << "][" << r+iix << "] = "
-                                                 << mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + (r+iid)*k*k + (r+iiy)*k + r+iix] << "x" << mem[input_offset/sizeof(float) +b_*id*ix*iy + (o_d +iid)/s*ix*iy + (o_y+iiy)/s*ix + (o_x+iix)/s]
-                                                 << "=" << output_element - prev_out << endl;
+                                            cout << "output[" << o_d << "][" << o_y << "][" << o_x <<  "] += input" << "[" << i_d << "][" << i_y << "][" << i_x
+                                                 << "] * filter[" << r+iid << "][" << r+iiy << "][" << r+iix << "] = "
+                                                 << mem[input_offset/sizeof(float) +b_*id*ix*iy + (o_d +iid)/s*ix*iy + (o_y+iiy)/s*ix + (o_x+iix)/s] << "x" << mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + (r+iid)*k*k + (r+iiy)*k + r+iix]
+                                                 << "=" << output_element - prev_out << " total = "<< output_element << endl;
                                             #endif
 
                                         }
@@ -124,11 +127,11 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
                             }
                         }
                         // Write output
-                        if(bnorm){
+                        //if(bnorm){
                             //TBC
-                            output_element = (output_element-mean)*ratio + beta;
-                        }
-                        if(relu) output_element = std::max(0.0f, output_element);
+                        //    output_element = (output_element-mean)*ratio + beta;
+                        //}
+                        //if(relu) output_element = std::max(0.0f, output_element);
                         mem[output_offset/sizeof(float) + b_*od*ox*oy + o_d*ox*oy + o_y*ox + o_x] = output_element;
                     }
                 }
