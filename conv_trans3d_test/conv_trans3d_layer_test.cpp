@@ -62,9 +62,9 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
        << "Num Outputs: " << num_outputs << endl
        << "Num Weights: " << num_weights << endl
        << "Num Biases: " << num_biases << endl
-       << "Input Dimensions " << b << " x " << id << " x " << ix << " x " << iy << endl
-       << "Output Dimensions " << b << " x " << od << " x " << ox << " x " << oy << endl
-       << "Kernel Dimensions " << od << " x " << id << " x " << k << " x " << k << endl
+       << "Input Dimensions " << b << " x " << ic<< " x " << id << " x " << ix << " x " << iy << endl
+       << "Output Dimensions " << b << " x " << oc << " x " << od << " x " << ox << " x " << oy << endl
+       << "Kernel Dimensions " << od << " x " << id << " x " << k << " x " << k << " x " << k << endl
        << "Stride Size: " << s << endl;
 #endif
 
@@ -74,7 +74,7 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
                   b, od, ox, oy, oc, ic, id, ix, iy, s, k,1,1,1);
 #else
         conv_trans3d_layer(dma_input, sizeof(float)*(num_biases + num_weights + num_bnormparams), 0 ,sizeof(float)*(b*num_inputs+num_biases + num_weights + num_bnormparams),
-                     b, od, ox, oy, oc, ic, id, ix, iy, s, k,1,1,1);
+                     b, od, ox, oy, oc, ic, id, ix, iy, s, k,0,1,1);
 #endif
 
     }
@@ -127,14 +127,14 @@ int main(int argc, char** argv)
         int isize = batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_width"];
         string fname;
         /*Reading weights*/
-        if (readRawFileNoAlloc(imageDir_current + "/testfilters", ptr, wsize, MAX_WEIGHT_SIZE )) {
+        if (readRawFileNoAlloc(imageDir_current + "/up3.0.weight", ptr, wsize, MAX_WEIGHT_SIZE )) {
             std::cout << "Read Error";
             return 1;
         }
 
         ptr += wsize;
         /*Reading Biases*/
-        if (readRawFileNoAlloc(imageDir_current + "/testbiases", ptr, bsize, MAX_CONV_OUTPUT )) {
+        if (readRawFileNoAlloc(imageDir_current + "/up3.0.bias", ptr, bsize, MAX_CONV_OUTPUT )) {
             std::cout << "Read Error";
             return 1;
         }
@@ -142,13 +142,31 @@ int main(int argc, char** argv)
         ptr += bsize;
 
         /*reading bnorm params*/
-        if (readRawFileNoAlloc(imageDir_current + "/bnormparams", ptr, bsize*4, MAX_CONV_OUTPUT )) {
+        if (readRawFileNoAlloc(imageDir_current + "/up3.1.running_mean", ptr, bsize, MAX_CONV_OUTPUT )) {
             std::cout << "Read Error";
             return 1;
         }
-        ptr += bsize*4;
+        ptr += bsize;
+        /*reading bnorm params*/
+        if (readRawFileNoAlloc(imageDir_current + "/up3.1.running_var", ptr, bsize, MAX_CONV_OUTPUT )) {
+            std::cout << "Read Error";
+            return 1;
+        }
+        ptr += bsize;
+        /*reading bnorm params*/
+        if (readRawFileNoAlloc(imageDir_current + "/up3.1.weight", ptr, bsize, MAX_CONV_OUTPUT )) {
+            std::cout << "Read Error";
+            return 1;
+        }
+        ptr += bsize;
+        /*reading bnorm params*/
+        if (readRawFileNoAlloc(imageDir_current + "/up3.1.bias", ptr, bsize, MAX_CONV_OUTPUT )) {
+            std::cout << "Read Error";
+            return 1;
+        }
+        ptr += bsize;
         /*Reading Inputs*/
-        if (readRawFileNoAlloc(imageDir_current + "/testinput", ptr, isize, 1*MAX_CONV_INPUT )) {
+        if (readRawFileNoAlloc(imageDir_current + "/conv3out", ptr, isize, 1*MAX_CONV_INPUT )) {
             std::cout << "Read Error";
             return 1;
         }

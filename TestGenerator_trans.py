@@ -13,17 +13,17 @@ from torch.autograd import Variable
 dtype = torch.cuda.FloatTensor
 
 
-input_var = Variable(torch.randn(1, 1, 32, 16, 16))
+input_var = Variable(torch.randn(1, 1, 1, 2, 2))
 input_var.cpu().numpy().astype('float32').tofile('testinput')
 a = input_var.numpy()
-filter_var = Variable(torch.randn(1, 1, 5, 5, 5))
+filter_var = Variable(torch.randn(1, 1, 3, 3, 3))
 filter_var.cpu().numpy().astype('float32').tofile('testfilters')
 w = filter_var.numpy()
 
 biases_var = Variable(torch.ones(1))
 biases_var.cpu().numpy().astype('float32').tofile('testbiases')
 b = biases_var.numpy()
-output_var = nn.functional.conv_transpose3d(input_var,filter_var,bias=biases_var)
+output_var = nn.functional.conv_transpose3d(input_var,filter_var,bias=biases_var,stride=1)
 output_var.cpu().numpy().astype('float32').tofile('testoutput')
 print(input_var.shape)
 print(output_var.shape)

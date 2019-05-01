@@ -46,10 +46,10 @@ std::map<std::string, int> readParams(const std::string fname)
         params[key] = InnerProduct;
       else if (!svalue.compare("Pooling"))
         params[key] = Pooling;
-      else if (!svalue.compare("TrnsConvolution"))
-        params[key] = Pooling;
+      else if (!svalue.compare("TransConvolution"))
+        params[key] = CONV3DT;
       else {
-        cerr << "Invalid Layer Type!\n";
+        cerr << "Invalid Layer Type " << svalue << " !\n";
         return std::map<std::string, int>();
       }
     } else if (!key.compare("name")) { 
@@ -255,7 +255,7 @@ int readOutputBatches(string imageRootDir, vector<map<string, int> > batch_layer
   	             batch_layer_params[i]["batch_size"];
         }
   	// Read gold outputs
-  	if (readRawFile(imageDir + "/testoutput",// this is for test change it to "out",
+  	if (readRawFile(imageDir + "/up3out",// this is for test change it to "out",
                   gold_outputs,
                   size,
                   max_alloc))

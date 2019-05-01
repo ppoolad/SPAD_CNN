@@ -5,7 +5,7 @@
 #include <iostream>
 #define EPSILON 0.00001
 
-#define PRINT
+//#define PRINT
 
 using namespace std;
 
@@ -24,49 +24,39 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
                   const int iy,           // input height
                   const int s,            // stride
                   const int k,            // kernel size
-                  const int pad,          // padding
+                  const int input_pad,    // padding
                   const int relu,         //relu enable
                   const int bnorm         // batch norm enable
 )
-
 {
-
-// Global memory interface
-#pragma HLS INTERFACE m_axi port=mem depth=2147483648
-// Bind all control ports to a single bundle
-#pragma HLS INTERFACE s_axilite port=b bundle=CTRL_BUS
-#pragma HLS INTERFACE s_axilite port=od bundle=CTRL_BUS
-#pragma HLS INTERFACE s_axilite port=ox bundle=CTRL_BUS
-#pragma HLS INTERFACE s_axilite port=oy bundle=CTRL_BUS
-#pragma HLS INTERFACE s_axilite port=oc bundle=CTRL_BUS
-#pragma HLS INTERFACE s_axilite port=id bundle=CTRL_BUS
-#pragma HLS INTERFACE s_axilite port=ix bundle=CTRL_BUS
-#pragma HLS INTERFACE s_axilite port=iy bundle=CTRL_BUS
-#pragma HLS INTERFACE s_axilite port=ic bundle=CTRL_BUS
-#pragma HLS INTERFACE s_axilite port=s bundle=CTRL_BUS
-#pragma HLS INTERFACE s_axilite port=k bundle=CTRL_BUS
-#pragma HLS INTERFACE s_axilite port=relu bundle=CTRL_BUS
-#pragma HLS INTERFACE s_axilite port=bnorm bundle=CTRL_BUS
-#pragma HLS INTERFACE s_axilite port=input_offset
-#pragma HLS INTERFACE s_axilite port=parameters_offset
-#pragma HLS INTERFACE s_axilite port=output_offset
-#pragma HLS INTERFACE s_axilite port=return bundle=CTRL_BUS
+    // Global memory interface
+    #pragma HLS INTERFACE m_axi port=mem depth=2147483648
+    // Bind all control ports to a single bundle
+    #pragma HLS INTERFACE s_axilite port=b bundle=CTRL_BUS
+    #pragma HLS INTERFACE s_axilite port=od bundle=CTRL_BUS
+    #pragma HLS INTERFACE s_axilite port=ox bundle=CTRL_BUS
+    #pragma HLS INTERFACE s_axilite port=oy bundle=CTRL_BUS
+    #pragma HLS INTERFACE s_axilite port=oc bundle=CTRL_BUS
+    #pragma HLS INTERFACE s_axilite port=id bundle=CTRL_BUS
+    #pragma HLS INTERFACE s_axilite port=ix bundle=CTRL_BUS
+    #pragma HLS INTERFACE s_axilite port=iy bundle=CTRL_BUS
+    #pragma HLS INTERFACE s_axilite port=ic bundle=CTRL_BUS
+    #pragma HLS INTERFACE s_axilite port=s bundle=CTRL_BUS
+    #pragma HLS INTERFACE s_axilite port=k bundle=CTRL_BUS
+    #pragma HLS INTERFACE s_axilite port=relu bundle=CTRL_BUS
+    #pragma HLS INTERFACE s_axilite port=bnorm bundle=CTRL_BUS
+    #pragma HLS INTERFACE s_axilite port=input_offset
+    #pragma HLS INTERFACE s_axilite port=parameters_offset
+    #pragma HLS INTERFACE s_axilite port=output_offset
+    #pragma HLS INTERFACE s_axilite port=return bundle=CTRL_BUS
 
     int num_weights = ic*oc*k*k*k;
     int num_biases = oc;
     int num_input = b*id*ix*iy;
     int num_output = b*oc*od*ox*oy;
-    int num_bnorm  = oc; //mean + var + beta + ghama
+    int num_bnorm  = 4*oc; //mean + var + beta + ghama
 
-    int r = (k - 1) / 2; //radius;
-    int sim_x = ix*s - s +1;
-    int sim_y = iy*s - s +1;
-    int sim_d = id*s - s +1;
-    //int sim_pad = k - pad -1; // for now pad is zero di
-    //int x_border = sim_pad == 0? r : 0;
-    //int y_border = sim_pad == 0? r : 0;
-    //int d_border = sim_pad == 0? r : 0;
-
+    int pad = (k+1)/2;
     // input weight + bias + input +
     // Batch
     for (int b_=0; b_< b; b_++)
@@ -76,9 +66,9 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
         {
             float mean  = mem[parameters_offset/sizeof(float) + num_weights + oc +                o_c];
             float var   = mem[parameters_offset/sizeof(float) + num_weights + oc +  num_bnorm*1 + o_c];
-            float gamma = mem[parameters_offset/sizeof(float) + num_weights + oc +  num_bnorm*2 + o_c];
-            float beta  = mem[parameters_offset/sizeof(float) + num_weights + oc +  num_bnorm*3 + o_c];
-            float ratio =  gamma/sqrt(var + EPSILON);
+            float gamma  = mem[parameters_offset/sizeof(float)+ num_weights + oc +  num_bnorm*2 + o_c];
+            float beta = mem[parameters_offset/sizeof(float)  + num_weights + oc +  num_bnorm*3 + o_c];
+            float num   =  gamma/sqrt(var + EPSILON);
             // Output Dimensions (Feature Maps)
             for (int o_d = 0; o_d < od; o_d++)
             {
@@ -96,42 +86,44 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
                         {
 
                             // Input Dimensions (Feature Maps)
-                            for (int iid = -r; iid <= r; iid++)
+                            for (int i_d = o_d/s-pad, iid = 0; i_d < (o_d+k)/s-pad; i_d++, iid++)
                             {
                                 // Input Y Dimension
-                                for (int iiy = -r; iiy <= r; iiy++)
+                                for (int i_y = o_y/s- pad, iiy = 0; i_y < (o_y+k)/s-pad; i_y++, iiy++)
                                 {
                                     // Input X Dimension
-                                    for (int iix = -r; iix <= r; iix++)
+                                    for (int i_x = o_x/s-pad, iix = 0; i_x < (o_x+k)/s-pad; i_x++, iix++)
                                     {
                                         //float ifmap = 0.0;
-                                        int i_x = (o_x+iix)/s;
-                                        int i_y = (o_y+iiy)/s;
-                                        int i_d = (o_d+iid)/s;
-                                        if((o_x + iix) >= 0 && (o_y + iiy) >= 0 && (o_d+iid) >= 0 && (o_x + iix) < sim_x && (o_y+iiy) < sim_y && (o_d + iid) < sim_d ){ // boundry check
+                                        if ( i_x >= 0 && i_y >= 0 && i_d >= 0 && i_x < ix && i_y < iy && i_d < id)
+                                        {
                                             //ifmap = mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x];
-                                            if ( (o_x + iix) % s != 0 || (o_y + iiy) % s != 0 || (o_d + iid) % s != 0) continue;
                                             float prev_out = output_element;
-                                            output_element += mem[input_offset/sizeof(float)+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]; //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
-                                                              mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + (r+iid)*k*k + (r+iiy)*k + r+iix];
+                                            output_element += mem[input_offset / sizeof(float) + b_ * id * ix * iy +
+                                                                  i_d * ix * iy + i_y * ix + i_x] *
+                                                              //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
+                                                              mem[parameters_offset / sizeof(float) +
+                                                                  o_c * ic * k * k * k + i_c * k * k * k + iid * k * k +
+                                                                  iiy * k + iix];
+
                                             #ifdef PRINT
                                             cout << "output[" << o_d << "][" << o_y << "][" << o_x <<  "] += input" << "[" << i_d << "][" << i_y << "][" << i_x
-                                                 << "] * filter[" << r+iid << "][" << r+iiy << "][" << r+iix << "] = "
-                                                 << mem[input_offset/sizeof(float) +b_*id*ix*iy + (o_d +iid)/s*ix*iy + (o_y+iiy)/s*ix + (o_x+iix)/s] << "x" << mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + (r+iid)*k*k + (r+iiy)*k + r+iix]
+                                                 << "] * filter[" << iid << "][" << iiy << "][" << iix << "] = "
+                                                 << mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x] << "x" << mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + iid*k*k + iiy*k + iix]
                                                  << "=" << output_element - prev_out << " total = "<< output_element << endl;
                                             #endif
-
                                         }
                                     }
                                 }
                             }
                         }
                         // Write output
-                        //if(bnorm){
+                        if(bnorm)
+                        {
                             //TBC
-                        //    output_element = (output_element-mean)*ratio + beta;
-                        //}
-                        //if(relu) output_element = std::max(0.0f, output_element);
+                            output_element = (output_element-mean)*num + beta;
+                        }
+                        if(relu) output_element = std::max(0.0f, output_element);
                         mem[output_offset/sizeof(float) + b_*od*ox*oy + o_d*ox*oy + o_y*ox + o_x] = output_element;
                     }
                 }
@@ -139,3 +131,4 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
         }
     }
 }
+
