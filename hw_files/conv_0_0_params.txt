@@ -1,0 +1,17 @@
+0x00010 0 : Data signal of input_offset
+0x00018 16777216 : Data signal of parameters_offset
+0x00020 17000000 : Data signal of output_offset
+0x00028 1 : Data signal of b
+0x00030 1024 : Data signal of od
+0x00038 64 : Data signal of ox
+0x00040 64 : Data signal of oy
+0x00048 4 : Data signal of oc
+0x00050 1 : Data signal of ic
+0x00058 1024 : Data signal of id
+0x00060 64 : Data signal of ix
+0x00068 64 : Data signal of iy
+0x00070 1 : Data signal of s
+0x00078 9 : Data signal of k
+0x00080 4 : Data signal of pad
+0x00088	1 : Data signal of relu
+0x00090	1 : Data signal of bnorm

@@ -67,6 +67,7 @@ int main(int argc, char **argv) {
 	int addr, len;
 	char const *xdma_base = getenv("XDMA"); //Is /dev/xdma1 on my machine
 	sscanf(argv[2], "%d", &addr);
+	sscanf(argv[3], "%d", &len);
 	read_file(xdma_base, argv[1], addr, len);
 	return 0;
 }
