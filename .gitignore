@@ -10,9 +10,9 @@ usage_statistics_webtalk.html
 usage_statistics_webtalk.xml
 hd_visual
 *timing
+data/
 *.m
 .vscode/
-data/
 conv3d_layer
 all_layer
 conv_trans3d_layer
