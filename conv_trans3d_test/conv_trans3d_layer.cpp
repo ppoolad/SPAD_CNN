@@ -5,7 +5,7 @@
 #include <iostream>
 #define EPSILON 0.00001
 
-//#define PRINT
+#define PRINT
 
 using namespace std;
 
@@ -56,7 +56,9 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
     int num_output = b*oc*od*ox*oy;
     int num_bnorm  = 4*oc; //mean + var + beta + ghama
 
-    int pad = (k+1)/2;
+    int pad = (k-1) - input_pad;
+    int r = k/2;
+    cout << "padding is " << pad << endl;
     // input weight + bias + input +
     // Batch
     for (int b_=0; b_< b; b_++)
@@ -86,25 +88,33 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
                         {
 
                             // Input Dimensions (Feature Maps)
-                            for (int i_d = o_d/s-pad, iid = 0; i_d < (o_d+k)/s-pad; i_d++, iid++)
+                            for (int iid = -r; iid < r; iid++)
                             {
+                                int i_d   = (o_d + iid)/s;
+                                int i_d_r = (o_d + iid)%s;
                                 // Input Y Dimension
-                                for (int i_y = o_y/s- pad, iiy = 0; i_y < (o_y+k)/s-pad; i_y++, iiy++)
+                                for (int iiy = -r; iiy < r; iiy++)
                                 {
+                                    int i_y   = (o_y + iiy)/s;
+                                    int i_y_r = (o_y + iiy)%s;
                                     // Input X Dimension
-                                    for (int i_x = o_x/s-pad, iix = 0; i_x < (o_x+k)/s-pad; i_x++, iix++)
+                                    for (int iix = -r; iix < r; iix++)
                                     {
+                                        int i_x   = (o_x + iix)/s;
+                                        int i_x_r = (o_x + iix)%s;
                                         //float ifmap = 0.0;
+                                        //cout << "i_y = " << i_y << "\tiiy = " << iiy << "\t i_x = " << i_x << "\t iix = " << iix << endl;
                                         if ( i_x >= 0 && i_y >= 0 && i_d >= 0 && i_x < ix && i_y < iy && i_d < id)
                                         {
                                             //ifmap = mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x];
                                             float prev_out = output_element;
+                                            if (i_d_r != 0 || i_y_r != 0 || i_x_r != 0) continue;
                                             output_element += mem[input_offset / sizeof(float) + b_ * id * ix * iy +
                                                                   i_d * ix * iy + i_y * ix + i_x] *
                                                               //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
                                                               mem[parameters_offset / sizeof(float) +
-                                                                  o_c * ic * k * k * k + i_c * k * k * k + iid * k * k +
-                                                                  iiy * k + iix];
+                                                                  o_c * ic * k * k * k + i_c * k * k * k + (r+iid) * k * k +
+                                                                      (r+iiy) * k + (r+iix)];
 
                                             #ifdef PRINT
                                             cout << "output[" << o_d << "][" << o_y << "][" << o_x <<  "] += input" << "[" << i_d << "][" << i_y << "][" << i_x

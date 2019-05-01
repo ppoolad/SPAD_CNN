@@ -23,7 +23,7 @@
 #  define htols(x)     __bswap_16(x)
 #endif
 
-#define PRINT
+    #define PRINT
 
 using namespace std;
 
@@ -255,7 +255,7 @@ int readOutputBatches(string imageRootDir, vector<map<string, int> > batch_layer
   	             batch_layer_params[i]["batch_size"];
         }
   	// Read gold outputs
-  	if (readRawFile(imageDir + "/up3out",// this is for test change it to "out",
+  	if (readRawFile(imageDir + "/testoutput",// "/up3out",// this is for test change it to "out",
                   gold_outputs,
                   size,
                   max_alloc))
