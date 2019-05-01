@@ -18,14 +18,23 @@ conv_layer: conv_test/* util/*
 conv3d_layer: conv3d_test/* util/*
 	g++ conv3d_test/*.cpp conv3d_test/*.c util/*.cpp -I conv3d_test -I./ -I/opt/Xilinx/Vivado_HLS/2017.2/include -o conv3d_layer -std=c++11
 
+conv_trans3d_layer: conv_trans3d_test/* util/*
+	g++ conv_trans3d_test/*.cpp conv_trans3d_test/*.c util/*.cpp -I conv_trans3d_test -I./ -I/opt/Xilinx/Vivado_HLS/2017.2/include -o conv_trans3d_layer -std=c++11
+
 hw_conv3d_layer: conv3d_test/* util/*
 	g++ -DHW_TEST conv3d_test/*.cpp conv3d_test/*.c util/*.cpp -I conv3d_test -I./ -I/opt/Xilinx/Vivado_HLS/2017.2/include  -o hw_conv3d_layer -std=c++11
+
+hw_conv_trans3d_layer: conv3d_test/* util/*
+	g++ -DHW_TEST conv_trans3d_test/*.cpp conv_trans3d_test/*.c util/*.cpp -I conv_trans3d_test -I./ -I/opt/Xilinx/Vivado_HLS/2017.2/include  -o hw_conv_trans3d_layer -std=c++11
 
 unified_fc_conv_layer: conv_test/* util/*
 	g++ conv_fc_unified_test/*.cpp conv_fc_unified_test/*.c util/*.cpp -I conv_fc_unified_test -I./ -I/opt/Xilinx/Vivado_HLS/2017.2/include -o conv_fc_unified_layer -std=c++11
 
 hw_unified_fc_conv_layer: conv_test/* util/*
 	g++ -g -DHW_TEST conv_fc_unified_test/*.cpp conv_fc_unified_test/*.c util/*.cpp -I conv_fc_unified_test -I./ -I/opt/Xilinx/Vivado_HLS/2017.2/include -o conv_fc_unified_layer -std=c++11
+
+all_layer: total_vgg_test/* conv3d_test/* conv_trans3d_test/* util/*
+	g++ total_vgg_test/*.cpp conv3d_test/conv3d_layer.cpp conv3d_test/hw_conv3d_layer.c conv_trans3d_test/conv_trans3d_layer.cpp conv_trans3d_test/hw_conv_trans3d_layer.c util/*.cpp  -I all_test -I./ -o all_layer -std=c++11
 
 fc_layer: fc_test/* util/*
 	g++ fc_test/*.cpp fc_test/*.c util/*.cpp -I fc_test -I./ -I/opt/Xilinx/Vivado_HLS/2017.2/include -o fc_layer -std=c++11
@@ -42,8 +51,11 @@ hw_vgg16: total_vgg_test/* util/*
 conv_hls: conv_test/* util/* 
 	vivado_hls hls_proj/conv_hls.tcl
 
-conv3d_hls: conv3d_test/* util/* 
+conv3d_hls: conv3d_test/* util/*
 	vivado_hls hls_proj/conv3d_hls.tcl
+
+conv_trans3d_hls: conv_trans3d_test/* util/*
+	vivado_hls hls_proj/conv_trans3d_hls.tcl
 
 fc_hls: fc_test/*  util/*
 	vivado_hls hls_proj/fc_hls.tcl
@@ -55,10 +67,10 @@ unified_fc_conv_hls: conv_fc_unified_test/* util/*
 	vivado_hls hls_proj/unified_fc_conv_hls.tcl
 
 
-pr:     $(PR_SRCS) dcp conv_hls conv3d_hls ##fc_hls maxpool_hls unified_fc_conv_hls
+pr:     $(PR_SRCS) dcp conv_hls conv3d_hls conv_trans3d_hls##fc_hls maxpool_hls unified_fc_conv_hls
 	vivado -mode batch -source 8v3_shell/create_pr2_nn.tcl -tclargs $(DCP) $(PROJNAME)  0 
 
-pr_modify: $(PR_SRCS) dcp conv_hls conv3d_hls## fc_hls maxpool_hls unified_fc_conv_hls
+pr_modify: $(PR_SRCS) dcp conv_hls conv3d_hls conv_trans3d_hls##  fc_hls maxpool_hls unified_fc_conv_hls
 	vivado -mode gui -source 8v3_shell/create_pr2_nn.tcl -tclargs $(DCP) $(PROJNAME)  1
 
 
