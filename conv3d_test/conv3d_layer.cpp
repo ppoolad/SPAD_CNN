@@ -73,7 +73,7 @@ void conv3d_layer(float * mem,            // global memory pointer
         {
           // Output X Dimension
           for (int o_x = 0; o_x < ox; o_x++)
-          {// for each ox we need to have K x K x K inputs and weights -> our largest filter is 9 -> 729
+          {// for each ox we need to have IC*K x K x K inputs and weights -> our largest filter is 9, largest channel is 40 -> 729*40
             // Set bias 
             float output_element = mem[parameters_offset/sizeof(float) + num_weights + o_c];
 
