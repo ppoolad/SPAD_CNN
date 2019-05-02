@@ -126,31 +126,31 @@ output = output_var.numpy()
 
 
 ###### CONV TRANSPOSE #########
-input_var = Variable(torch.randn(1, 1, 4, 4, 4))
+input_var = Variable(torch.randn(1, 2, 128, 8, 8))
 input_var.cpu().numpy().astype('float32').tofile('transtestin')
 a = input_var.numpy()
-filter_var = Variable(torch.randn(1, 1, 2, 2, 2))
+filter_var = Variable(torch.randn(2, 2, 6, 6, 6))
 filter_var.cpu().numpy().astype('float32').tofile('transtestfilters')
 w = filter_var.numpy()
 
-biases_var = Variable(torch.ones(1))
+biases_var = Variable(torch.ones(2))
 biases_var.cpu().numpy().astype('float32').tofile('transtestbiases')
 b = biases_var.numpy()
-output_var = nn.functional.conv_transpose3d(input_var,filter_var, stride=1, padding=0)
+output_var = nn.functional.conv_transpose3d(input_var,filter_var,bias=biases_var, stride=2, padding=2)
 output = output_var.numpy()
 #output_var.cpu().numpy().astype('float32').tofile('transtestoutput')
-run_mean = 5
-run_var = 1
-gamma = 1
-beta = 0.5
+run_mean = [5,5]
+run_var = [1,1]
+gamma = [1,1]
+beta = [0.5,0.5]
 bnormpar = torch.tensor([run_mean, run_var, gamma, beta])
 
 bnormpar.numpy().astype('float32').tofile('transbnormparams');
 
-normed_var = nn.functional.batch_norm(output_var,bnormpar[0].reshape(1),
-                                      bnormpar[1].reshape(1),
-                                      weight=bnormpar[2].reshape(1),
-                                      bias=bnormpar[3].reshape(1))
+normed_var = nn.functional.batch_norm(output_var,bnormpar[0],
+                                      bnormpar[1],
+                                      weight=bnormpar[2],
+                                      bias=bnormpar[3])
 
 #normed_var.cpu().numpy().astype('float32').tofile('transtestnormoutput')
 

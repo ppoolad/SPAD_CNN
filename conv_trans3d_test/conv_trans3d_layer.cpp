@@ -99,7 +99,7 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
                             int ni_x = i_x/s; int ni_y = i_y/s; int ni_d = i_d/s; 
                             //std::cout << "in[" << ni_d << ',' << ni_y<<',' << ni_x << "] * w[" << k-1-iid << ',' << k-1-iiy << ',' << k-1-iix << ']' << std::endl; 
                             output_element += mem[input_offset/sizeof(float) +b_*ic*id*ix*iy+ i_c*id*ix*iy + ni_d*ix*iy + ni_y*ix + ni_x] * //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
-                                      mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + (k-1-iid)*k*k + (k-1-iiy)*k + k-1-iix];
+                                      mem[parameters_offset/sizeof(float) + i_c*oc*k*k*k + o_c*k*k*k + (k-1-iid)*k*k + (k-1-iiy)*k + k-1-iix];
                         }
                       }
                   }

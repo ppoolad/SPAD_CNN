@@ -177,6 +177,7 @@ vector<map<string, int> > readBatchParams(string imageRootDir, int numBatches, s
         ss.str("");
     	ss << i;
   	string imageDir = imageRootDir + ss.str() + "/" + layer;
+    std::cout << "Reading: " << imageDir << "/params"<<std::endl; 
   	map<string, int> layer_params = readParams(imageDir + "/params");
 	retVec.push_back(layer_params);
    }
