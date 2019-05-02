@@ -6,6 +6,7 @@ vivado_*
 *dcp
 *bit
 *_proj
+.idea/
 usage_statistics_webtalk.html
 usage_statistics_webtalk.xml
 hd_visual
