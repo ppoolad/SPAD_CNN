@@ -52,7 +52,7 @@ void conv3d_layer(float * mem,            // global memory pointer
   int num_biases = oc;
   int num_input = b*ic*id*ix*iy;
   int num_output = b*oc*od*ox*oy;
-  int num_bnorm  = 4*oc; //mean + var + beta + ghama
+  int num_bnorm  = oc; //mean + var + beta + ghama
   // input weight + bias + input + 
   // Batch
   for (int b_=0; b_< b; b_++)
