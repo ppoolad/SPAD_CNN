@@ -60,15 +60,15 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
 
 #ifdef PRINT
         cout << "Begin Test\n"
-       << "Batch Size: " << b << endl
-       << "Num Inputs: " << num_inputs << endl
-       << "Num Outputs: " << num_outputs << endl
-       << "Num Weights: " << num_weights << endl
-       << "Num Biases: " << num_biases << endl
-       << "Input Dimensions " << b << " x " << ic<< " x " << id << " x " << ix << " x " << iy << endl
-       << "Output Dimensions " << b << " x " << oc << " x " << od << " x " << ox << " x " << oy << endl
-       << "Kernel Dimensions " << oc << " x " << ic << " x " << k << " x " << k << " x " << k << endl
-       << "Stride Size: " << s << endl;
+             << "Batch Size: " << b << endl
+             << "Num Inputs: " << num_inputs << endl
+             << "Num Outputs: " << num_outputs << endl
+             << "Num Weights: " << num_weights << endl
+             << "Num Biases: " << num_biases << endl
+             << "Input Dimensions " << b << " x " << ic<< " x " << id << " x " << ix << " x " << iy << endl
+             << "Output Dimensions " << b << " x " << oc << " x " << od << " x " << ox << " x " << oy << endl
+             << "Kernel Dimensions " << oc << " x " << ic << " x " << k << " x " << k << " x " << k << endl
+             << "Stride Size: " << s << endl;
 #endif
 
         // Run Accelerator
@@ -78,7 +78,7 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
 #else
         cout << "input offset = " << num_biases + num_weights + num_bnormparams + dma_input << endl;
         conv_trans3d_layer(dma_input, sizeof(float)*(num_biases + num_weights + num_bnormparams), 0 ,sizeof(float)*(b*num_inputs+num_biases + num_weights + num_bnormparams),
-                     b, od, ox, oy, oc, ic, id, ix, iy, s, k,p,0,0);
+                           b, od, ox, oy, oc, ic, id, ix, iy, s, k,p,relu,norm);
 #endif
 
     }
@@ -153,7 +153,7 @@ int main(int argc, char** argv) {
 
         /*reading bnorm params*/
         //if (readRawFileNoAlloc(imageDir_current + "/up3.1.running_mean", ptr, bsize, MAX_CONV_OUTPUT )) {
-        if (readRawFileNoAlloc(imageDir_current + "/bnormparams", ptr, bsize, MAX_CONV_OUTPUT)) {
+        if (readRawFileNoAlloc(imageDir_current + "/bnormparams", ptr, 4*bsize, MAX_CONV_OUTPUT)) {
             std::cout << "Read Error";
             return 1;
         }
@@ -219,4 +219,3 @@ int main(int argc, char** argv) {
     std::cout << "DONE" << std::endl;
     return 0;
 }
-

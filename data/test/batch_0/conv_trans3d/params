@@ -12,6 +12,6 @@ kernel_size 6
 stride 2
 pad 2
 batch_size 1
-enable_relu 0
-enable_norm 0
+enable_relu 1
+enable_norm 1
 

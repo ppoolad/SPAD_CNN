@@ -66,11 +66,11 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
         // Output Channels
         for(int o_c = 0; o_c < oc; o_c++ )
         {
-            float mean  = mem[parameters_offset/sizeof(float) + num_weights + oc +                o_c];
-            float var   = mem[parameters_offset/sizeof(float) + num_weights + oc +  num_bnorm*1 + o_c];
-            float gamma  = mem[parameters_offset/sizeof(float)+ num_weights + oc +  num_bnorm*2 + o_c];
-            float beta = mem[parameters_offset/sizeof(float)  + num_weights + oc +  num_bnorm*3 + o_c];
-            float num   =  gamma/sqrt(var + EPSILON);
+            float mean  = mem[parameters_offset/sizeof(float) + num_weights + oc +         o_c];
+            float var   = mem[parameters_offset/sizeof(float) + num_weights + oc +  oc*1 + o_c];
+            float gamma  = mem[parameters_offset/sizeof(float)+ num_weights + oc +  oc*2 + o_c];
+            float beta = mem[parameters_offset/sizeof(float)  + num_weights + oc +  oc*3 + o_c];
+            float ratio   =  gamma/sqrt(var + EPSILON);
             // Output Dimensions (Feature Maps)
             for (int o_d = 0; o_d < od; o_d++)
             {
@@ -131,7 +131,7 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
                         if(bnorm)
                         {
                             //TBC
-                            output_element = (output_element-mean)*num + beta;
+                            output_element = (output_element-mean)*ratio + beta;
                         }
                         if(relu) output_element = std::max(0.0f, output_element);
                         mem[output_offset/sizeof(float) + b_*od*ox*oy + o_d*ox*oy + o_y*ox + o_x] = output_element;
