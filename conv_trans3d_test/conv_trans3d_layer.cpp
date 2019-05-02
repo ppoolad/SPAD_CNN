@@ -5,7 +5,7 @@
 #include <iostream>
 #define EPSILON 0.00001
 
-#define PRINT
+//#define PRINT
 
 using namespace std;
 
@@ -57,7 +57,7 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
     int num_bnorm  = 4*oc; //mean + var + beta + ghama
 
     int pad = (k-1) - input_pad;
-    int r = k/2;
+    int r   =  k/2;
     cout << "padding is " << pad << endl;
     // input weight + bias + input +
     // Batch
@@ -113,13 +113,13 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
                                                                   i_d * ix * iy + i_y * ix + i_x] *
                                                               //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
                                                               mem[parameters_offset / sizeof(float) +
-                                                                  o_c * ic * k * k * k + i_c * k * k * k + (r+iid) * k * k +
-                                                                      (r+iiy) * k + (r+iix)];
+                                                                  o_c * ic * k * k * k + i_c * k * k * k + (r-1-iid) * k * k +
+                                                                      (r-1-iiy) * k + (r-1-iix)];
 
                                             #ifdef PRINT
                                             cout << "output[" << o_d << "][" << o_y << "][" << o_x <<  "] += input" << "[" << i_d << "][" << i_y << "][" << i_x
-                                                 << "] * filter[" << iid << "][" << iiy << "][" << iix << "] = "
-                                                 << mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x] << "x" << mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + iid*k*k + iiy*k + iix]
+                                                 << "] * filter[" << r-1-iid << "][" << r-1-iiy << "][" << r-1-iix << "] = "
+                                                 << mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x] << "x" << mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + (r-1-iid)*k*k + (r-1-iiy)*k + r-1-iix]
                                                  << "=" << output_element - prev_out << " total = "<< output_element << endl;
                                             #endif
                                         }
