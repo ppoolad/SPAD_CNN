@@ -112,7 +112,7 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
                                                                   i_d * ix * iy + i_y * ix + i_x] *
                                                               //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
                                                               mem[parameters_offset / sizeof(float) +
-                                                                  o_c * ic * k * k * k + i_c * k * k * k + (r-1-iid) * k * k +
+                                                                  i_c * oc * k * k * k +  o_c* k * k * k + (r-1-iid) * k * k +
                                                                   (r-1-iiy) * k + (r-1-iix)];
 
                                             #ifdef PRINT
