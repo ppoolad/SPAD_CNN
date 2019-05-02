@@ -40,9 +40,10 @@ static int myreadFile(const string fname,
     }
     in_file.close();
   }
-  else
+  else{
     cerr << "Couldn't open file: " << fname << endl;
-
+    retval = 1;
+  }
   //if (retval) delete [] fptr;
   return retval;
 }
@@ -160,7 +161,7 @@ int main(int argc, char** argv)
       int isize = batch_layer_params[i]["input_channel"]*batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_width"];
       string fname;
       /*Reading weights*/
-      if (myreadFile(imageDir_current + "/up3.0.weights", ptr, wsize, MAX_WEIGHT_SIZE )) {
+      if (myreadFile(imageDir_current + "/up3.0.weight", ptr, wsize, MAX_WEIGHT_SIZE )) {
         std::cout << "Read Error";
         return 1;
       }
@@ -175,7 +176,7 @@ int main(int argc, char** argv)
       ptr += bsize;
 
       /*reading bnorm params*/
-      if (myreadFile(imageDir_current + "/up3.1.running_mean", ptr, 4*bsize, MAX_OUTPUT_CHANNELS )) {
+      if (myreadFile(imageDir_current + "/up3.1.running_mean", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
         std::cout << "Read Error";
         return 1;
       }
