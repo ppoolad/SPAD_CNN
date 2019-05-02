@@ -10,7 +10,7 @@ input_dim 128
 input_channel 16
 kernel_size 6
 stride 2
-pad 0
+pad 3
 batch_size 1
 enable_relu 1
 enable_norm 1

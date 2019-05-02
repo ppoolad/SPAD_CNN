@@ -202,9 +202,9 @@ int main(int argc, char** argv) {
         ostringstream ss;
         ss << i;
 
-#ifdef PRINT
+        #ifdef PRINT
         cout << "Running batch" << i << endl;
-#endif
+        #endif
         imageDir = imageRootDir + ss.str() + "/" + layer;
         std::cout << "ImageDir is " << imageDir << endl;
         if(run_single_test(imageDir, batch_layer_params[i], dma_input_vec[i], gold_outputs_vec[i])!=0)
