@@ -196,7 +196,7 @@ int main(int argc, char** argv)
       //   return 1;
       // }      
 
-      ptr += bsize;
+      //ptr += bsize;
       /*Reading Inputs*/
       if (myreadFile(imageDir_current + "/transtestin", ptr, isize, 1*MAX_CONV_INPUT )) {
         std::cout << "Read Error";
