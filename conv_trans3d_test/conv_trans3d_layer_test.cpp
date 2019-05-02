@@ -181,22 +181,22 @@ int main(int argc, char** argv)
         return 1;
       }
       ptr += 4*bsize;
-      // if (myreadFile(imageDir_current + "/up3.1.running_var", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
-      //   std::cout << "Read Error";
-      //   return 1;
-      // }
-      // ptr += bsize;
-      // if (myreadFile(imageDir_current + "/up3.1.weight", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
-      //   std::cout << "Read Error";
-      //   return 1;
-      // }
-      // ptr += bsize;
-      // if (myreadFile(imageDir_current + "/up3.1.bias", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
-      //   std::cout << "Read Error";
-      //   return 1;
-      // }      
+    //   if (myreadFile(imageDir_current + "/conv0.1.running_var", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
+    //     std::cout << "Read Error";
+    //     return 1;
+    //   }
+    //   ptr += bsize;
+    //   if (myreadFile(imageDir_current + "/conv0.1.weight", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
+    //     std::cout << "Read Error";
+    //     return 1;
+    //   }
+    //   ptr += bsize;
+    //   if (myreadFile(imageDir_current + "/conv0.1.bias", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
+    //     std::cout << "Read Error";
+    //     return 1;
+    //   }      
 
-      //ptr += bsize;
+    //   ptr += bsize;
       /*Reading Inputs*/
       if (myreadFile(imageDir_current + "/transtestin", ptr, isize, 1*MAX_CONV_INPUT )) {
         std::cout << "Read Error";
