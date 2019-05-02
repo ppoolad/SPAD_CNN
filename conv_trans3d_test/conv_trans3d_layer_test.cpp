@@ -124,7 +124,7 @@ int main(int argc, char** argv)
 
   string imageRootDir = "data/SPAD/batch_";
   int numBatches = 1;
-  string layer = "up3";
+  string layer = "up3/test";
   // string prev_layer = prevLayer;
   string feed = "/dma_in";
   // if(prevLayer.empty()){
@@ -161,14 +161,14 @@ int main(int argc, char** argv)
       int isize = batch_layer_params[i]["input_channel"]*batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_width"];
       string fname;
       /*Reading weights*/
-      if (myreadFile(imageDir_current + "/up3.0.weight", ptr, wsize, MAX_WEIGHT_SIZE )) {
+      if (myreadFile(imageDir_current + "/transtestfilters", ptr, wsize, MAX_WEIGHT_SIZE )) {
         std::cout << "Read Error";
         return 1;
       }
 
       ptr += wsize;
       /*Reading Biases*/
-      if (myreadFile(imageDir_current + "/up3.0.bias", ptr, bsize, MAX_CONV_OUTPUT )) {
+      if (myreadFile(imageDir_current + "/transtestbiases", ptr, bsize, MAX_CONV_OUTPUT )) {
         std::cout << "Read Error";
         return 1;
       }
@@ -176,29 +176,29 @@ int main(int argc, char** argv)
       ptr += bsize;
 
       /*reading bnorm params*/
-      if (myreadFile(imageDir_current + "/up3.1.running_mean", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
+      if (myreadFile(imageDir_current + "/transbnormparams", ptr, 4*bsize, MAX_OUTPUT_CHANNELS )) {
         std::cout << "Read Error";
         return 1;
       }
-      ptr += bsize;
-      if (myreadFile(imageDir_current + "/up3.1.running_var", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
-        std::cout << "Read Error";
-        return 1;
-      }
-      ptr += bsize;
-      if (myreadFile(imageDir_current + "/up3.1.weight", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
-        std::cout << "Read Error";
-        return 1;
-      }
-      ptr += bsize;
-      if (myreadFile(imageDir_current + "/up3.1.bias", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
-        std::cout << "Read Error";
-        return 1;
-      }      
+      ptr += 4*bsize;
+      // if (myreadFile(imageDir_current + "/up3.1.running_var", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
+      //   std::cout << "Read Error";
+      //   return 1;
+      // }
+      // ptr += bsize;
+      // if (myreadFile(imageDir_current + "/up3.1.weight", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
+      //   std::cout << "Read Error";
+      //   return 1;
+      // }
+      // ptr += bsize;
+      // if (myreadFile(imageDir_current + "/up3.1.bias", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
+      //   std::cout << "Read Error";
+      //   return 1;
+      // }      
 
       ptr += bsize;
       /*Reading Inputs*/
-      if (myreadFile(imageDir_current + "/conv3out", ptr, isize, 1*MAX_CONV_INPUT )) {
+      if (myreadFile(imageDir_current + "/transtestin", ptr, isize, 1*MAX_CONV_INPUT )) {
         std::cout << "Read Error";
         return 1;
       }
@@ -212,7 +212,7 @@ int main(int argc, char** argv)
   //}
 
 
-  if(readOutputBatches("/up3out",imageRootDir, batch_layer_params, numBatches, layer, 1*MAX_CONV_OUTPUT, gold_outputs_vec, CONV3D)) return 1;
+  if(readOutputBatches("/transtestnormreluoutput",imageRootDir, batch_layer_params, numBatches, layer, 1*MAX_CONV_OUTPUT, gold_outputs_vec, CONV3D)) return 1;
 
   auto start = chrono::system_clock::now(); 
   for(int i=0; i<numBatches; i++){
