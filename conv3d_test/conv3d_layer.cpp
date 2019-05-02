@@ -48,12 +48,44 @@ void conv3d_layer(float * mem,            // global memory pointer
 #pragma HLS INTERFACE s_axilite port=output_offset
 #pragma HLS INTERFACE s_axilite port=return bundle=CTRL_BUS
  
-  int num_weights = ic*oc*k*k*k;
-  int num_biases = oc;
-  int num_input = b*ic*id*ix*iy;
-  int num_output = b*oc*od*ox*oy;
-  int num_bnorm  = oc; //mean + var + beta + ghama
-  // input weight + bias + input + 
+    int num_weights = ic*oc*k*k*k;
+    int num_biases = oc;
+    int num_input = b*ic*id*ix*iy;
+    int num_output = b*oc*od*ox*oy;
+    int num_bnorm  = oc; //mean + var + beta + ghama
+
+    int w_offset = parameters_offset/sizeof(float);
+    int b_offset = parameters_offset/sizeof(float) + num_weights;
+    int n_offset = parameters_offset/sizeof(float) + num_weights + num_biases;
+    int i_offset = input_offset/sizeof(float);
+    int o_offset = output_offset/sizeof(float);
+
+    //on-chip BRAM buffer/////////////
+    //PING-PONG RAM is appied, again for the detail please refer to the
+    //FPGA 2015 paper : "Optimizing FPGA-based Accelerator Design for Deep Convolutional Neural Networks"
+    float biasBRAM[MAX_OUTPUT_CHANNELS/To][To];
+    #pragma HLS array_partition variable=biasBRAM complete dim=2
+    float inputBRAM_ping[Ti][ind_size][iny_size][inx_size];
+    float weightBRAM_ping[To][Ti][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE];
+    #pragma HLS array_partition variable=inputBRAM_ping complete dim=1
+    #pragma HLS array_partition variable=weightBRAM_ping complete dim=2
+    #pragma HLS array_partition variable=weightBRAM_ping complete dim=1
+
+    float inputBRAM_pong[Ti][ind_size][iny_size][inx_size];
+    float weightBRAM_pong[To][Ti][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE];
+    #pragma HLS array_partition variable=inputBRAM_pong complete dim=1
+    #pragma HLS array_partition variable=weightBRAM_pong complete dim=2
+    #pragma HLS array_partition variable=weightBRAM_pong complete dim=1
+
+    float outputBRAM[To][Tod][Toy][Tox];
+    #pragma HLS array_partition variable=outputBRAM complete dim=1
+    /////////////////////////////////
+    const int od_limit = (od >= Tod) ? Tod : od;
+    const int oy_limit = (oy >= Toy) ? Toy : oy;
+    const int ox_limit = (ox >= Tox) ? Tox : ox;
+
+
+    // input weight + bias + input +
   // Batch
   for (int b_=0; b_< b; b_++)
   {

@@ -16,6 +16,16 @@
 #define MAX_CONV_OUTPUT MAX_OUTPUT_CHANNELS*MAX_OUTPUT_DIMS*MAX_OUTPUT_WIDTH*MAX_OUTPUT_HEIGHT 
 #define MAX_WEIGHT_SIZE MAX_INPUT_CHANNELS*MAX_OUTPUT_CHANNELS*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE
 #define EPSILON 0.00001
+
+#define Ti		4
+#define To		4
+#define Toy		7
+#define Tox		7
+#define Tod     7
+#define ind_size	Tod+MAX_KERNEL_SIZE-1
+#define iny_size	Toy+MAX_KERNEL_SIZE-1
+#define inx_size	Tox+MAX_KERNEL_SIZE-1
+
 void conv3d_layer(float * mem,            // global memory pointer
                 int input_offset,       // offset of inputs
                 int parameters_offset,  // offset of parameters
