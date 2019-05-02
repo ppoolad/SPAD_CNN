@@ -54,11 +54,10 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
     int num_biases = oc;
     int num_input = b*id*ix*iy;
     int num_output = b*oc*od*ox*oy;
-    int num_bnorm  = 4*oc; //mean + var + beta + ghama
+    int num_bnorm  = oc; //mean + var + beta + ghama
 
-    int pad = (k-1) - input_pad;
-    int r   =  k/2;
-    cout << "padding is " << pad << endl;
+    //int pad = (k-1) - input_pad;
+    int r   =  k/2; //used even kernel size for transpose
     // input weight + bias + input +
     // Batch
     for (int b_=0; b_< b; b_++)
@@ -66,11 +65,11 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
         // Output Channels
         for(int o_c = 0; o_c < oc; o_c++ )
         {
-            float mean  = mem[parameters_offset/sizeof(float) + num_weights + oc +         o_c];
-            float var   = mem[parameters_offset/sizeof(float) + num_weights + oc +  oc*1 + o_c];
-            float gamma  = mem[parameters_offset/sizeof(float)+ num_weights + oc +  oc*2 + o_c];
-            float beta = mem[parameters_offset/sizeof(float)  + num_weights + oc +  oc*3 + o_c];
-            float ratio   =  gamma/sqrt(var + EPSILON);
+            float mean  = mem[parameters_offset/sizeof(float) + num_weights + num_biases + num_bnorm*0 + o_c];
+            float var   = mem[parameters_offset/sizeof(float) + num_weights + num_biases + num_bnorm*1 + o_c];
+            float gamma = mem[parameters_offset/sizeof(float) + num_weights + num_biases + num_bnorm*2 + o_c];
+            float beta  = mem[parameters_offset/sizeof(float) + num_weights + num_biases + num_bnorm*3 + o_c];
+            float ratio = gamma/sqrt(var + EPSILON);
             // Output Dimensions (Feature Maps)
             for (int o_d = 0; o_d < od; o_d++)
             {
@@ -109,17 +108,17 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
                                             //ifmap = mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x];
                                             float prev_out = output_element;
                                             if (i_d_r != 0 || i_y_r != 0 || i_x_r != 0) continue;
-                                            output_element += mem[input_offset / sizeof(float) + b_ * id * ix * iy +
+                                            output_element += mem[input_offset / sizeof(float) + b_ * ic * id * ix * iy + i_c * id * ix * iy +
                                                                   i_d * ix * iy + i_y * ix + i_x] *
                                                               //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
                                                               mem[parameters_offset / sizeof(float) +
                                                                   o_c * ic * k * k * k + i_c * k * k * k + (r-1-iid) * k * k +
-                                                                      (r-1-iiy) * k + (r-1-iix)];
+                                                                  (r-1-iiy) * k + (r-1-iix)];
 
                                             #ifdef PRINT
                                             cout << "output[" << o_d << "][" << o_y << "][" << o_x <<  "] += input" << "[" << i_d << "][" << i_y << "][" << i_x
                                                  << "] * filter[" << r-1-iid << "][" << r-1-iiy << "][" << r-1-iix << "] = "
-                                                 << mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x] << "x" << mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + (r-1-iid)*k*k + (r-1-iiy)*k + r-1-iix]
+                                                 << mem[input_offset/sizeof(float) + b_ * id * ix * iy * ic + i_c* id * ix * iy  + i_d*ix*iy + i_y*ix + i_x] << "x" << mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + (r-1-iid)*k*k + (r-1-iiy)*k + r-1-iix]
                                                  << "=" << output_element - prev_out << " total = "<< output_element << endl;
                                             #endif
                                         }
@@ -134,7 +133,7 @@ void conv_trans3d_layer(float * mem,            // global memory pointer
                             output_element = (output_element-mean)*ratio + beta;
                         }
                         if(relu) output_element = std::max(0.0f, output_element);
-                        mem[output_offset/sizeof(float) + b_*od*ox*oy + o_d*ox*oy + o_y*ox + o_x] = output_element;
+                        mem[output_offset/sizeof(float) + b_*od*ox*oy*oc + o_c*od*ox*oy  + o_d*ox*oy + o_y*ox + o_x] = output_element;
                     }
                 }
             }

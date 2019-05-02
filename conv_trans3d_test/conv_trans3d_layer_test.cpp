@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <cmath>
+#include "math.h"
 #include <vector>
 #include <map>
 #include <string>
@@ -77,6 +77,7 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
                   b, od, ox, oy, oc, ic, id, ix, iy, s, k,1,1,1);
 #else
         cout << "input offset = " << num_biases + num_weights + num_bnormparams + dma_input << endl;
+        cout << "input offset = " << b*num_inputs+num_biases + num_weights + num_bnormparams + dma_input << endl;
         conv_trans3d_layer(dma_input, sizeof(float)*(num_biases + num_weights + num_bnormparams), 0 ,sizeof(float)*(b*num_inputs+num_biases + num_weights + num_bnormparams),
                            b, od, ox, oy, oc, ic, id, ix, iy, s, k,p,relu,norm);
 #endif
@@ -112,9 +113,6 @@ int main(int argc, char** argv) {
     //     return 1;
     // }else{
     for (int i = 0; i < numBatches; i++) {
-        static float dma_in[MAX_WEIGHT_SIZE + 5 * MAX_OUTPUT_CHANNELS + MAX_CONV_INPUT + MAX_CONV_OUTPUT];
-
-        float *ptr = dma_in;
         ss.str("");
         ss << i;
         imageDir = imageRootDir + ss.str() + "/" + layer;
@@ -132,10 +130,12 @@ int main(int argc, char** argv) {
                     batch_layer_params[i]["kernel_size"];
         int bsize = batch_layer_params[i]["output_channel"];
         int size = isize + wsize + bsize * 5;
+        float* dma_in = new float[MAX_WEIGHT_SIZE+5*MAX_OUTPUT_CHANNELS+MAX_CONV_INPUT+MAX_CONV_OUTPUT];
+        float *ptr = dma_in;
         string fname;
         /*Reading weights*/
-        //if (readRawFileNoAlloc(imageDir_current + "/up3.0.weight", ptr, wsize, MAX_WEIGHT_SIZE )) {
-        if (readRawFileNoAlloc(imageDir_current + "/testfilters", ptr, wsize, MAX_WEIGHT_SIZE)) {
+        if (readRawFileNoAlloc(imageDir_current + "/up3.0.weight", ptr, wsize, MAX_WEIGHT_SIZE )) {
+        //if (readRawFileNoAlloc(imageDir_current + "/testfilters", ptr, wsize, MAX_WEIGHT_SIZE)) {
 
             std::cout << "Read Error";
             return 1;
@@ -143,8 +143,8 @@ int main(int argc, char** argv) {
 
         ptr += wsize;
         /*Reading Biases*/
-        //if (readRawFileNoAlloc(imageDir_current + "/up3.0.bias", ptr, bsize, MAX_CONV_OUTPUT )) {
-        if (readRawFileNoAlloc(imageDir_current + "/testbiases", ptr, bsize, MAX_CONV_OUTPUT)) {
+        if (readRawFileNoAlloc(imageDir_current + "/up3.0.bias", ptr, bsize, MAX_CONV_OUTPUT )) {
+        //if (readRawFileNoAlloc(imageDir_current + "/testbiases", ptr, bsize, MAX_CONV_OUTPUT)) {
             std::cout << "Read Error";
             return 1;
         }
@@ -152,14 +152,14 @@ int main(int argc, char** argv) {
         ptr += bsize;
 
         /*reading bnorm params*/
-        //if (readRawFileNoAlloc(imageDir_current + "/up3.1.running_mean", ptr, bsize, MAX_CONV_OUTPUT )) {
-        if (readRawFileNoAlloc(imageDir_current + "/bnormparams", ptr, 4*bsize, MAX_CONV_OUTPUT)) {
+        if (readRawFileNoAlloc(imageDir_current + "/up3.1.running_mean", ptr, bsize, MAX_CONV_OUTPUT )) {
+        //if (readRawFileNoAlloc(imageDir_current + "/bnormparams", ptr, 4*bsize, MAX_CONV_OUTPUT)) {
             std::cout << "Read Error";
             return 1;
         }
-        //ptr += bsize;
-        ptr += 4 * bsize;
-        /*
+        ptr += bsize;
+        //ptr += 4 * bsize;
+
         if (readRawFileNoAlloc(imageDir_current + "/up3.1.running_var", ptr, bsize, MAX_CONV_OUTPUT )) {
             std::cout << "Read Error";
             return 1;
@@ -175,13 +175,14 @@ int main(int argc, char** argv) {
             return 1;
         }
         ptr += bsize;
-        cout << "input offset = " << ptr << endl;*/
+        cout << "input offset = " << ptr << endl;
         /*Reading Inputs*/
-        //if (readRawFileNoAlloc(imageDir_current + "/conv3out", ptr, isize, 1*MAX_CONV_INPUT )) {
-        if (readRawFileNoAlloc(imageDir_current + "/testinput", ptr, isize, 1 * MAX_CONV_INPUT)) {
+        if (readRawFileNoAlloc(imageDir_current + "/conv3out", ptr, isize, 1*MAX_CONV_INPUT )) {
+        //if (readRawFileNoAlloc(imageDir_current + "/testinput", ptr, isize, 1 * MAX_CONV_INPUT)) {
             std::cout << "Read Error";
             return 1;
         }
+        cout << "ouput offset = " << ptr + isize << endl;
         dma_input_vec.push_back(dma_in);
         string outdir = imageRootDir + ss.str() + "/" + layer + "/" + "created_dma_in";
         ofstream myFile(outdir.c_str(), ios::out | ios::binary);
@@ -211,9 +212,9 @@ int main(int argc, char** argv) {
     }
     auto end = chrono::system_clock::now();
     auto elapsed = end - start;
-
     float avg_error = get_mean_squared_error_and_write_file(dma_input_vec, gold_outputs_vec, numBatches, batch_layer_params, imageRootDir, layer, CONV3DT);
-
+    for ( int s = 0; s < dma_input_vec.size(); s++)
+        delete [] dma_input_vec[s];
     std::cout << "Mean Square Error " << avg_error << endl;
     std::cout << "Computation took  " << chrono::duration_cast<chrono::milliseconds> (elapsed).count() << " ms" << endl;
     std::cout << "DONE" << std::endl;
