@@ -73,7 +73,7 @@ void conv3d_layer(float * mem,            // global memory pointer
         {
           // Output X Dimension
           for (int o_x = 0; o_x < ox; o_x++)
-          {
+          {// for each ox we need to have K x K x K inputs and weights -> our largest filter is 9 -> 729
             // Set bias 
             float output_element = mem[parameters_offset/sizeof(float) + num_weights + o_c];
 
@@ -90,6 +90,7 @@ void conv3d_layer(float * mem,            // global memory pointer
                   // Input X Dimension
                   for (int i_x = o_x*s-pad, iix = 0; i_x < o_x*s-pad+k; i_x++, iix++)
                   {
+#pragma HLS PIPELINE
                     //float ifmap = 0.0;
                     if((i_x >= 0) && (i_y >= 0) && (i_d >= 0) && (i_x < ix) && (i_y < iy) && (i_d < id)){
                       //ifmap = mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x];
