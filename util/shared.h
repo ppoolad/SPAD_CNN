@@ -5,7 +5,7 @@
 #include <vector>
 #include <map>
 
-#define MAX_BATCH 10
+//#define MAX_BATCH 10
 #define NUM_BIAS_DIMENSIONS 1
 #define CONV 0
 #define FC 1
