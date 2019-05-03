@@ -55,47 +55,61 @@ void conv3d_layer(float * mem,            // global memory pointer
   int num_bnorm  = oc; //mean + var + beta + ghama
   // input weight + bias + input + 
   // Batch
-  for (int b_=0; b_< b; b_++)
+// float kernel_buffer[MAX_INPUT_CHANNELS*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE] = {0.0};
+// #pragma HLS ARRAY_PARTITION variable=kernel_buffer cyclic 
+BATCH:  for (int b_=0; b_< b; b_++)
   {
     // Output Channels
-    for(int o_c = 0; o_c < oc; o_c++ )
+OC:    for(int o_c = 0; o_c < oc; o_c++ )
     {
       float mean  = mem[parameters_offset/sizeof(float) + num_weights + oc +                o_c];
       float var   = mem[parameters_offset/sizeof(float) + num_weights + oc +  num_bnorm*1 + o_c];
       float gamma = mem[parameters_offset/sizeof(float)+ num_weights + oc +  num_bnorm*2 + o_c];
       float beta  = mem[parameters_offset/sizeof(float)  + num_weights + oc +  num_bnorm*3 + o_c];
       float num   =  gamma/sqrt(var + EPSILON);
+
+//           for(int j = 0; j < ic ; j++){
+//             for(int i = 0; i < k*k*k; i++)
+//             {
+// #pragma HLS PIPELINE
+//               kernel_buffer[i] = mem[parameters_offset/sizeof(float) +j*oc*k*k*k + o_c*k*k*k + i];
+//             }
+//           }
       // Output Dimensions (Feature Maps)
-      for (int o_d = 0; o_d < od; o_d++)
+OD:      for (int o_d = 0; o_d < od; o_d++)
       {
         // Output Y Dimension
-        for (int o_y = 0; o_y < oy; o_y++)
+OY:        for (int o_y = 0; o_y < oy; o_y++)
         {
           // Output X Dimension
-          for (int o_x = 0; o_x < ox; o_x++)
+OX:          for (int o_x = 0; o_x < ox; o_x++)
           {// for each ox we need to have IC*K x K x K inputs and weights -> our largest filter is 9, largest channel is 40 -> 729*40
             // Set bias 
+            
+
+
+
             float output_element = mem[parameters_offset/sizeof(float) + num_weights + o_c];
 
             // Weighted Sum:
-            for(int i_c = 0; i_c < ic; i_c++)
+IC:            for(int i_c = 0; i_c < ic; i_c++)
             {
             
             // Input Dimensions (Feature Maps)
-              for (int i_d = o_d*s-pad, iid = 0; i_d < o_d*s-pad+k; i_d++, iid++)
+ID:              for (int i_d = o_d*s-pad, iid = 0; i_d < o_d*s-pad+k; i_d++, iid++)
               {
                 // Input Y Dimension
-                for (int i_y = o_y*s-pad, iiy = 0; i_y < o_y*s-pad+k; i_y++, iiy++)
+IY:                for (int i_y = o_y*s-pad, iiy = 0; i_y < o_y*s-pad+k; i_y++, iiy++)
                 {
                   // Input X Dimension
-                  for (int i_x = o_x*s-pad, iix = 0; i_x < o_x*s-pad+k; i_x++, iix++)
+IX:                  for (int i_x = o_x*s-pad, iix = 0; i_x < o_x*s-pad+k; i_x++, iix++)
                   {
 #pragma HLS PIPELINE
                     //float ifmap = 0.0;
                     if((i_x >= 0) && (i_y >= 0) && (i_d >= 0) && (i_x < ix) && (i_y < iy) && (i_d < id)){
                       //ifmap = mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x];
                       output_element += mem[input_offset/sizeof(float) +b_*ic*id*ix*iy+ i_c*id*ix*iy + i_d*ix*iy + i_y*ix + i_x] * //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
-                                      mem[parameters_offset/sizeof(float) + i_c*oc*k*k*k + o_c*k*k*k + iid*k*k + iiy*k + iix];
+                                      mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + iid*k*k + iiy*k + iix];
                       }
                   }
                 }

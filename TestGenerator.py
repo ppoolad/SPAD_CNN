@@ -14,20 +14,20 @@ dtype = torch.cuda.FloatTensor
 
 
 
-inputspad = np.fromfile('data/test/batch_0/conv3d/spadfile',dtype='float32')
-input_var = Variable(torch.tensor(inputspad)).reshape(1,1,1024,64,64)
-filters = np.fromfile('data/test/batch_0/conv3d/conv0.0.weight',dtype='float32')
-filter_var = Variable(torch.tensor(filters)).reshape(4,1,9,9,9)
-biases = np.fromfile('data/test/batch_0/conv3d/conv0.0.bias',dtype='float32')
-biases_var = Variable(torch.tensor(biases)).reshape(4)
-bnorm_mean = np.fromfile('data/test/batch_0/conv3d/conv0.1.running_mean',dtype='float32')
-bnorm_var = np.fromfile('data/test/batch_0/conv3d/conv0.1.running_var',dtype='float32')
-bnorm_w = np.fromfile('data/test/batch_0/conv3d/conv0.1.weight',dtype='float32')
-bnorm_b = np.fromfile('data/test/batch_0/conv3d/conv0.1.bias',dtype='float32')
+inputspad = np.fromfile('data/SPAD/batch_0/conv3/ds3out',dtype='float32')
+input_var = Variable(torch.tensor(inputspad)).reshape(1,1,128,8,8)
+filters = np.fromfile('data/SPAD/batch_0/conv3/conv3.0.weight',dtype='float32')
+filter_var = Variable(torch.tensor(filters)).reshape(16,1,3,3,3)
+biases = np.fromfile('data/SPAD/batch_0/conv3/conv3.0.bias',dtype='float32')
+biases_var = Variable(torch.tensor(biases)).reshape(16)
+bnorm_mean = np.fromfile('data/SPAD/batch_0/conv3/conv3.1.running_mean',dtype='float32')
+bnorm_var = np.fromfile('data/SPAD/batch_0/conv3/conv3.1.running_var',dtype='float32')
+bnorm_w = np.fromfile('data/SPAD/batch_0/conv3/conv3.1.weight',dtype='float32')
+bnorm_b = np.fromfile('data/SPAD/batch_0/conv3/conv3.1.bias',dtype='float32')
 
 bnormpar = torch.tensor([bnorm_mean, bnorm_var, bnorm_w, bnorm_b])
 
-output_var = nn.functional.conv3d(input_var,filter_var,bias=biases_var, padding = 0)
+output_var = nn.functional.conv3d(input_var,filter_var,bias=biases_var, padding = 1)
 
 normed_var = nn.functional.batch_norm(output_var,bnormpar[0],
                                       bnormpar[1],
@@ -35,7 +35,7 @@ normed_var = nn.functional.batch_norm(output_var,bnormpar[0],
                                       bias=bnormpar[3])
 
 normedrelu_var = nn.functional.relu(normed_var)
-normedrelu_var.numpy().astype('float32').tofile('conv00out')
+normedrelu_var.numpy().astype('float32').tofile('data/SPAD/batch_0/conv3/conv30out')
 
 #######################################################################
 input_var = Variable(torch.randn(1, 1, 1024, 64, 64))
