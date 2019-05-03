@@ -23,6 +23,8 @@
 #  define htols(x)     __bswap_16(x)
 #endif
 
+#define PRINT
+
 using namespace std;
 
 
@@ -355,9 +357,21 @@ float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *
     for (int j = 0; j < b*num_outputs; j++)
     {
       float err = fabs(outputs[j] - golden_output[i][j]);
-      if (err > 0.1) {
-        //std::cout << outputs[j] << "VS" << golden_output[i][j]<< '\n';
+      #ifdef PRINT
+      int b1 = batch_layer_params[i]["batch_size"];
+      int w5 = batch_layer_params[i]["output_width"];
+      int h4 = batch_layer_params[i]["output_height"];
+      int d3 = batch_layer_params[i]["output_dim"];
+      int c2 = batch_layer_params[i]["output_channel"];
+      if (err > 0.1)
+      {
+          int w5_2 = j% w5;
+          int h4_2 = (j/w5) % h4;
+          int d3_2 = (j/w5/h4) % d3;
+          int c2_2 = (j/w5/h4/d3) % c2;
+          std::cout << "output[" << c2_2 << "][" << d3_2 << "][" << h4_2 << "][" << w5_2 << "] = "<< outputs[j] << "VS" << golden_output[i][j]<< '\n';
       }
+      #endif
       
       total += err*err;
       //printf("HW: %.6f GOLD:%.6f\n",fabs(outputs[j]),golden_output[i][j] );

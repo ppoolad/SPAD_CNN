@@ -18,13 +18,12 @@
 
 #define NUM_BNORM_PARAMS    4
 
-#define Tc      4  //tile for channels // keep this 4 other wise change conv_compute
-//#define Tid		3   //tile for output dimension
+#define Tc      16  //tile for channels // keep this 4 other wise change conv_compute
 #define Tod		3   //tile for input  dimension
 #define Toy		3
 #define Tox		3
 
-#define Tn      Tc*4 // for batch normalization
+#define Tn      12//Tc*4 // for batch normalization
 
 #define ind_size	Tod+MAX_KERNEL_SIZE-1
 #define iny_size	Toy+MAX_KERNEL_SIZE-1

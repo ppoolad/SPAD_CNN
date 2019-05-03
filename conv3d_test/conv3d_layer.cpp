@@ -1,3 +1,4 @@
+#include <iostream>
 #include <algorithm>
 #include <float.h>
 #include "conv3d_layer.h"
@@ -66,24 +67,22 @@ void conv3d_layer(float * mem,            // global memory pointer
     //FPGA 2015 paper : "Optimizing FPGA-based Accelerator Design for Deep Convolutional Neural Networks"
     float biasBRAM[MAX_OUTPUT_CHANNELS/Tc][Tc];
     #pragma HLS array_partition variable=biasBRAM complete dim=2
+
     float normBRAM[MAX_OUTPUT_CHANNELS/Tc][Tn];
     #pragma HLS array_partition variable=normBRAM complete dim=2
 
-
     // should not usign ping pong for the weights since the ic and oc are small yet 16 but for bigger layers should change
+    float inputBRAM_ping   [Tc][ind_size][iny_size][inx_size];
     float weightBRAM_ping  [Tc][Tc][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE];
+    #pragma HLS array_partition variable=inputBRAM_ping complete dim=1
     #pragma HLS array_partition variable=weightBRAM_ping complete dim=2
     #pragma HLS array_partition variable=weightBRAM_ping complete dim=1
 
+    float inputBRAM_pong    [Tc][ind_size][iny_size][inx_size];
     float weightBRAM_pong   [Tc][Tc][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE];
+    #pragma HLS array_partition variable=inputBRAM_pong complete dim=1
     #pragma HLS array_partition variable=weightBRAM_pong complete dim=2
     #pragma HLS array_partition variable=weightBRAM_pong complete dim=1
-
-    float inputBRAM_ping    [Tc][ind_size][iny_size][inx_size];
-    #pragma HLS array_partition variable=inputBRAM_ping complete dim=1
-
-    float inputBRAM_pong    [Tc][ind_size][iny_size][inx_size];
-    #pragma HLS array_partition variable=inputBRAM_pong complete dim=1
 
 
     float outputBRAM[Tc][Tod][Toy][Tox];
@@ -118,6 +117,8 @@ void conv3d_layer(float * mem,            // global memory pointer
                 for (int o_d = 0; o_d < od; o_d+=Tod)
                 {
                     ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_DIMS/Tod)
+                    //std::cout << "bmorm[0][0] = " << normBRAM[0][0] << "\n";
+                    //std::cout << "bias[0][0] = "  << biasBRAM[0][0] << "\n";
                     // Output Channels
                     oc_loop:
                     for(int o_c = 0; o_c < oc; o_c+=Tc )
@@ -128,32 +129,36 @@ void conv3d_layer(float * mem,            // global memory pointer
 
                         //PING-PONG RAM applied here
                         //the time spent on convolution computation is fully converd by the time spent on memory transaction
-                        mem_read_weight(mem, w_offset, weightBRAM_ping, k,oc,ic, o_c, 0);
-                        mem_read_input(mem,i_offset,inputBRAM_ping,ic,id,ix,iy,k,s,bb,o_y,o_x,o_d,o_c,0,oy_limit,ox_limit,od_limit);
-
+                        mem_read_weight(mem, w_offset, weightBRAM_ping, k, oc, ic, o_c, 0);
+                        mem_read_input(mem, i_offset, inputBRAM_ping, ic, id, ix, iy, k, s, bb, o_y, o_x, o_d, o_c, 0, oy_limit, ox_limit, od_limit);
+                        //std::cout << "read init"<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
+                        //std::cout << "ic = " << ic << "Tc = " << Tc << "residue" << (ic/Tc)%2 << "\n";
                         for(int i_c = Tc; i_c < ic; i_c+=Tc )
                         {
+                            //std::cout << "i_c = " << i_c << "\n";
                             ADD_PRAGMA(HLS loop_tripcount max = MAX_INPUT_CHANNELS/Tc )
                             if ((i_c/Tc)%2)
                             {
+                               // std :: cout << "read ping"<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
                                 conv_compute(outputBRAM,inputBRAM_ping,weightBRAM_ping,k,s,od_limit,oy_limit,ox);
                                 mem_read_weight(mem, w_offset, weightBRAM_pong, k,oc,ic, o_c, i_c);
-                                mem_read_input(mem,i_offset,inputBRAM_pong,ic,id,ix,iy,k,s,bb,o_y,o_x,o_d,o_c,0,oy_limit,ox_limit,od_limit);
+                                mem_read_input(mem,i_offset,inputBRAM_pong,ic,id,ix,iy,k,s,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit);
                             }
                             else
                             {
+                                //std :: cout << "read pong "<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
                                 conv_compute(outputBRAM,inputBRAM_pong,weightBRAM_pong,k,s,od_limit,oy_limit,ox);
                                 mem_read_weight(mem, w_offset, weightBRAM_ping, k,oc,ic, o_c, i_c);
-                                mem_read_input(mem,i_offset,inputBRAM_ping,ic,id,ix,iy,k,s,bb,o_y,o_x,o_d,o_c,0,oy_limit,ox_limit,od_limit);
+                                mem_read_input(mem,i_offset,inputBRAM_ping,ic,id,ix,iy,k,s,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit);
                             }
                         }
                         //for the last one to choose between ping and pong
-                        if ((ic/Tc) % 2)
+                        if (((ic/Tc) % 2) || ic<Tc)
                             conv_compute(outputBRAM,inputBRAM_ping,weightBRAM_ping,k,s,od_limit,oy_limit,ox);
                         else
                             conv_compute(outputBRAM,inputBRAM_pong,weightBRAM_pong,k,s,od_limit,oy_limit,ox);
                         // Write output
-                        mem_write(mem,o_offset,outputBRAM,normBRAM,oc,od,oy,ox,bb,o_c,o_d,o_y,o_x,od_limit,oy_limit,ox_limit,bnorm,relu);
+                        mem_write(mem, o_offset, outputBRAM, normBRAM, oc, od, oy, ox, bb, o_c, o_d, o_y, o_x, od_limit, oy_limit, ox_limit, bnorm, relu);
                     }
                 }
             }
