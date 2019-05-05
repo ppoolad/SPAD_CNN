@@ -66,7 +66,12 @@ void conv_compute(
         const int s,
         const int od_limit,
         const int oy_limit,
-        const int ox_limit);
+        const int ox_limit,
+        int o_c, //for test
+        int i_c,
+        int o_x,
+        int o_y,
+        int o_d);
 
 void mem_write(
         float * mem,            // global memory pointer

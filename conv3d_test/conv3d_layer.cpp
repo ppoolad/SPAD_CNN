@@ -6,6 +6,8 @@
 #include "math.h"
 #define EPSILON 0.00001
 
+using namespace std;
+
 void conv3d_layer(float * mem,            // global memory pointer
                   int input_offset,       // offset of inputs
                   int parameters_offset,  // offset of parameters
@@ -93,9 +95,10 @@ void conv3d_layer(float * mem,            // global memory pointer
     const int ox_limit = (ox >= Tox) ? Tox : ox;
 
     //load biases
-    read_bias(biasBRAM, mem, b_offset,  oc);
+    read_bias(biasBRAM, mem, b_offset,  num_biases);
+
     //load bnorm parmas
-    read_bnorm(normBRAM, mem, n_offset, oc);
+    read_bnorm(normBRAM, mem, n_offset, num_bnorm);
 
     // Batch
     batch_loop:
@@ -131,32 +134,34 @@ void conv3d_layer(float * mem,            // global memory pointer
                         //the time spent on convolution computation is fully converd by the time spent on memory transaction
                         mem_read_weight(mem, w_offset, weightBRAM_ping, k, oc, ic, o_c, 0);
                         mem_read_input(mem, i_offset, inputBRAM_ping, ic, id, ix, iy, k, s, bb, o_y, o_x, o_d, o_c, 0, oy_limit, ox_limit, od_limit);
+
                         //std::cout << "read init"<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
                         //std::cout << "ic = " << ic << "Tc = " << Tc << "residue" << (ic/Tc)%2 << "\n";
                         for(int i_c = Tc; i_c < ic; i_c+=Tc )
                         {
                             //std::cout << "i_c = " << i_c << "\n";
+                            // unroll II
                             ADD_PRAGMA(HLS loop_tripcount max = MAX_INPUT_CHANNELS/Tc )
                             if ((i_c/Tc)%2)
                             {
                                // std :: cout << "read ping"<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
-                                conv_compute(outputBRAM,inputBRAM_ping,weightBRAM_ping,k,s,od_limit,oy_limit,ox);
+                                conv_compute(outputBRAM,inputBRAM_ping,weightBRAM_ping,k,s,od_limit,oy_limit,ox_limit, o_c,i_c,o_x, o_y, o_d);
                                 mem_read_weight(mem, w_offset, weightBRAM_pong, k,oc,ic, o_c, i_c);
                                 mem_read_input(mem,i_offset,inputBRAM_pong,ic,id,ix,iy,k,s,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit);
                             }
                             else
                             {
                                 //std :: cout << "read pong "<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
-                                conv_compute(outputBRAM,inputBRAM_pong,weightBRAM_pong,k,s,od_limit,oy_limit,ox);
+                                conv_compute(outputBRAM,inputBRAM_pong,weightBRAM_pong,k,s,od_limit,oy_limit,ox_limit,o_c,i_c,o_x, o_y, o_d);
                                 mem_read_weight(mem, w_offset, weightBRAM_ping, k,oc,ic, o_c, i_c);
                                 mem_read_input(mem,i_offset,inputBRAM_ping,ic,id,ix,iy,k,s,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit);
                             }
                         }
                         //for the last one to choose between ping and pong
                         if (((ic/Tc) % 2) || ic<Tc)
-                            conv_compute(outputBRAM,inputBRAM_ping,weightBRAM_ping,k,s,od_limit,oy_limit,ox);
+                            conv_compute(outputBRAM,inputBRAM_ping,weightBRAM_ping,k,s,od_limit,oy_limit,ox_limit,o_c,ic-1,o_x, o_y, o_d);
                         else
-                            conv_compute(outputBRAM,inputBRAM_pong,weightBRAM_pong,k,s,od_limit,oy_limit,ox);
+                            conv_compute(outputBRAM,inputBRAM_pong,weightBRAM_pong,k,s,od_limit,oy_limit,ox_limit,o_c,ic-1,o_x, o_y, o_d);
                         // Write output
                         mem_write(mem, o_offset, outputBRAM, normBRAM, oc, od, oy, ox, bb, o_c, o_d, o_y, o_x, od_limit, oy_limit, ox_limit, bnorm, relu);
                     }
@@ -165,3 +170,5 @@ void conv3d_layer(float * mem,            // global memory pointer
         }
     }
 }
+
+//add padding
