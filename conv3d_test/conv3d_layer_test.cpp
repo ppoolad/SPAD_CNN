@@ -104,7 +104,7 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
     // Run Accelerator
     #ifdef HW_TEST
     hw_conv3d_layer(HW_CTRL_ADDR, dma_input, sizeof(float)*(num_biases + num_weights + num_bnormparams), 0 ,sizeof(float)*(b*num_inputs+num_biases + num_weights + num_bnormparams),
-                  b, od, ox, oy, oc, ic, id, ix, iy, s, k,1,1,1);
+                  b, od, ox, oy, oc, ic, id, ix, iy, s, k,pad,1,1);
     #else
     conv3d_layer(dma_input, sizeof(float)*(num_biases + num_weights + num_bnormparams), 0 ,sizeof(float)*(b*num_inputs+num_biases + num_weights + num_bnormparams),
                b, od, ox, oy, oc, ic, id, ix, iy, s, k,pad,1,1);

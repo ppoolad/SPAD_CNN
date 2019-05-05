@@ -135,7 +135,7 @@ void mem_read_input(
                                 int i_y = (o_y+y)*s - pad + iiy;
                                 int i_d = (o_d+d)*s - pad + iid;
                                 //reading some more than once
-                                if((i_x >= 0) && (i_y >= 0) && (i_d >= 0) && (i_x < ix) && (i_y < iy) && (i_d < id)) //
+                                if((i_x >= 0) && (i_y >= 0) && (i_d >= 0) && (i_x < ix) && (i_y < iy) && (i_d < id) && (i_cc+i_c)<ic) //
                                     inputBRAM[i_cc][s*d+iid][s*y+iiy][s*x+iix] = mem[input_offset+ bb*ic*id*iy*ix + (i_c+i_cc)*id*ix*iy + i_d*ix*iy + i_y*ix + i_x];
                                 else
                                     inputBRAM[i_cc][s*d+iid][s*y+iiy][s*x+iix] = 0;
@@ -217,9 +217,10 @@ void conv_compute(
 //                                    std::cout << "in 3 =" <<  inputBRAM[3][s*d+l][s*y+i][s*x+j] << "x" << weightBRAM[o_cc][3][l*k*k+i*k+j] << "\n";
                                 //std::cout << "out[" << o_cc << "][" << d << "][" << y << "][" << x << "] = " << mul1_1 << " + " << mul1_2 << " + " << mul1_3 << " + " << mul1_4 << "\n";
                                 int r = (k-1)/2;
-//                                std::cout <<"out[" << o_cc + o_c << "][" << o_d + d << "][" << o_y + y << "][" << o_x + x << "] += "
-//                                << " in[" << i_c+0 << "][" << s*(d+o_d) + l -r << "][" << s*(y+o_y) + i - r  << "][" << s*(x+o_x) + j - r << "] x w[" << o_cc+o_c << "][" << 0 << "][" << l << "][" << i << "][" << j << "] = "
-//                                << inputBRAM[0][s*d+l][s*y+i][s*x+j] << "x" << weightBRAM[o_cc][0][l*k*k+i*k+j] << "=" << mul1_1 << "+" << mul1_2 << "+" << mul1_3 << "+" << mul1_4 << " = " << outputBRAM[o_cc][d][y][x] - prev <<" = +" << outputBRAM[o_cc][d][y][x] << "\n";
+                                //if ((o_cc+o_c) == 0 && (o_d+d )== 1 && (o_y+y) == 0 && (o_x + x) == 2){
+                                //std::cout <<"out[" << o_cc + o_c << "][" << o_d + d << "][" << o_y + y << "][" << o_x + x << "] += "
+                                //<< " in[" << i_c+0 << "][" << s*(d+o_d) + l -r << "][" << s*(y+o_y) + i - r  << "][" << s*(x+o_x) + j - r << "] x w[" << o_cc+o_c << "][" << 0 << "][" << l << "][" << i << "][" << j << "] = "
+                                //<< inputBRAM[0][s*d+l][s*y+i][s*x+j] << "x" << weightBRAM[o_cc][0][l*k*k+i*k+j] << "=" << mul1_1 << "+" << mul1_2 << "+" << mul1_3 << "+" << mul1_4 << " = " << outputBRAM[o_cc][d][y][x] - prev <<" = +" << outputBRAM[o_cc][d][y][x] << "\n";}
                             }
                         }
                     }
@@ -267,12 +268,16 @@ void mem_write(
                         int i1 = o_cc*NUM_BNORM_PARAMS;
                         //(output-mean)*gamma/sqrt(var + EPSILON)-beta;
                         //if ((o_cc+o_c)==0)
-                        //std::cout << "for o_c = " << o_cc+o_c << " i0 = " << i0 << " i1= " << i1 << " mean = " << normBRAM[i0][i1] << " var = " << normBRAM[i0][i1+1] << "gamma = " << normBRAM[i0][i1+2] << " beta = " << normBRAM[i0][i1+3] << "\n";
-                        output_element = (output_element - normBRAM[i0][i1])/sqrt(normBRAM[i0][i1+1] + EPSILON)*normBRAM[i0][i1+2]-normBRAM[i0][i1+3];
+                        float ratio =  normBRAM[i0][i1+2]/sqrt(normBRAM[i0][i1+1] + EPSILON);
+                        //std::cout << "for outBRAM[ " << o_cc+o_c << "][" << o_d+d << "][" << o_y+y << "][" << o_x+x << "] =" << ratio << "x" << output_element - normBRAM[i0][i1] << " + " << normBRAM[i0][i1+3] << " , mean = " << normBRAM[i0][i1] << " var = " << normBRAM[i0][i1+1] << "gamma = " << normBRAM[i0][i1+2] << " beta = " << normBRAM[i0][i1+3] << "\n";
+                        output_element = (output_element - normBRAM[i0][i1])*ratio+normBRAM[i0][i1+3];
                     }
                     //std::cout << "writing after bnorm " << output_element << "\n";
                     if (relu) output_element = std::max(0.0f,output_element);
-                    mem[output_offset+ bb*oc*od*oy*ox + (o_c+o_cc)*od*oy*ox + (o_d+d)*ox*oy + (o_y+y)*ox + o_x+x] = output_element;
+                    //std::cout << " = " << output_element << "\n";
+                    if ((o_c+o_cc) < oc && (o_d+d) < od && (o_y+y) < oy && (o_x+x) < ox)
+                        mem[output_offset + bb*oc*od*ox*oy + (o_c+o_cc)*od*ox*oy+ (o_d+d)*ox*oy + (o_y+y)*ox + o_x+x]  = output_element;
+                    //std::cout << " = " << mem[output_offset + 0*oc*od*ox*oy + 0*od*ox*oy+ 1*ox*oy + 0*ox + 2] << "\n";
                 }
             }
         }
