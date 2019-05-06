@@ -45,8 +45,8 @@ conv_hls: conv_test/* util/*
 conv3d_hls: conv3d_test/* util/* 
 	vivado_hls hls_proj/conv3d_hls.tcl
 
-conv_trans3d_hls:  conv_trans3d_hls/* util/*
-    vivado_hls hls_proj/conv_trans3d_hls.tcl
+conv_trans3d_hls: conv_trans3d_test/* util/*
+	vivado_hls hls_proj/conv_trans3d_hls.tcl
 
 fc_hls: fc_test/*  util/*
 	vivado_hls hls_proj/fc_hls.tcl
