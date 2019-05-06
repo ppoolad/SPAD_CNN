@@ -2,7 +2,6 @@ cd hls_proj
 open_project conv3d_proj
 set_top conv3d_layer 
 add_files ../conv3d_test/conv3d_layer.cpp
-add_files ../conv3d_test/conv3d_functions.cpp
 add_files -tb ../conv3d_test/conv3d_layer_test.cpp -cflags "-I .  -std=c++0x"
 add_files -tb ../util/shared.cpp
 add_files -tb ../data
