@@ -45,6 +45,9 @@ conv_hls: conv_test/* util/*
 conv3d_hls: conv3d_test/* util/* 
 	vivado_hls hls_proj/conv3d_hls.tcl
 
+conv_trans3d_hls:  conv_trans3d_hls/* util/*
+    vivado_hls hls_proj/conv_trans3d_hls.tcl
+
 fc_hls: fc_test/*  util/*
 	vivado_hls hls_proj/fc_hls.tcl
 
@@ -55,7 +58,7 @@ unified_fc_conv_hls: conv_fc_unified_test/* util/*
 	vivado_hls hls_proj/unified_fc_conv_hls.tcl
 
 
-pr:     $(PR_SRCS) dcp conv_hls conv3d_hls ##fc_hls maxpool_hls unified_fc_conv_hls
+pr:     $(PR_SRCS) dcp conv_hls conv3d_hls conv_trans3d_hls ##fc_hls maxpool_hls unified_fc_conv_hls
 	vivado -mode batch -source 8v3_shell/create_pr2_nn.tcl -tclargs $(DCP) $(PROJNAME)  0 
 
 pr_modify: $(PR_SRCS) dcp conv_hls conv3d_hls## fc_hls maxpool_hls unified_fc_conv_hls
