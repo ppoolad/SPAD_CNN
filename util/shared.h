@@ -15,7 +15,7 @@
 float get_mean_squared_error_and_write_file(std::vector<float *> mem, std::vector <float *> golden_output, int numBatches, std::vector<std::map<std::string, int> >, std::string imageRootDir, std::string layer, int layerType  );
 std::vector<std::map<std::string, int> > readBatchParams(std::string imageRootDir, int numBatches, std::string layer);
 int readInputBatches(std::string imageRootDir, std::vector<std::map<std::string, int> > batch_layer_params, int numBatches, std::string layer, const int max_alloc, std::vector<float *> &ptr, int layerType);
-int readOutputBatches(std::string imageRootDir, std::vector<std::map<std::string, int> > batch_layer_params, int numBatches, std::string layer, const int max_alloc, std::vector<float *> &ptr, int layerType);
+int readOutputBatches(std::string filename, std::string imageRootDir, std::vector<std::map<std::string, int> > batch_layer_params, int numBatches, std::string layer, const int max_alloc, std::vector<float *> &ptr, int layerType);
 
 int readInputBatchesWithNorm(std::string imageRootDir,std::vector<float *>dma_input_vec, std::vector<std::map<std::string, int> > batch_layer_params, int numBatches,std::string layer, int layer_index, std::string layer_prv, const int max_alloc, int layerType, std::string input_name, bool ReadinputFlag);
 

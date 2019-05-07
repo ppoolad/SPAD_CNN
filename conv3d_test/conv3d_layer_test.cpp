@@ -196,8 +196,8 @@ int main(int argc, char** argv)
       if (myreadFile(imageDir_current + "/spadfile", ptr, isize, 1*MAX_CONV_INPUT )) {
               std::cout << "Read Error";
               return 1;
-          }
       }
+
       dma_input_vec.push_back(dma_in);
       string outdir = imageRootDir + ss.str() + "/" + layer + "/" +"created_dma_in";
       ofstream myFile(outdir.c_str(), ios::out | ios::binary);

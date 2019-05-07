@@ -227,7 +227,7 @@ int readInputBatches(string imageRootDir, vector<map<string, int> > batch_layer_
 
 }
 
-int readOutputBatches(string imageRootDir, vector<map<string, int> > batch_layer_params, int numBatches, string layer, const int max_alloc, vector <float *> &ptr, int layerType){
+int readOutputBatches(string filename, string imageRootDir, vector<map<string, int> > batch_layer_params, int numBatches, string layer, const int max_alloc, vector <float *> &ptr, int layerType){
   float * gold_outputs;
   ostringstream ss;
   
@@ -255,7 +255,7 @@ int readOutputBatches(string imageRootDir, vector<map<string, int> > batch_layer
   	             batch_layer_params[i]["batch_size"];
         }
   	// Read gold outputs
-  	if (readRawFile(imageDir + "/up3out",//"/testnormreluoutput", //"/testoutput",// "/up3out",// this is for test change it to "out",
+  	if (readRawFile(imageDir + filename,//"/testnormreluoutput", //"/testoutput",// "/up3out",// this is for test change it to "out",
                   gold_outputs,
                   size,
                   max_alloc))
