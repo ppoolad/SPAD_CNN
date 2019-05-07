@@ -188,25 +188,26 @@ void conv_compute(
                                 #pragma HLS dependence variable=outputBRAM inter false
                                 float mul1_1;
                                 float mul1_2;
-                                float mul1_3;
-                                float mul1_4;
+                                //float mul1_3;
+                                //float mul1_4;
                                 float mul2_1;
-                                float mul2_2;
+                                //float mul2_2;
                                 float mul3_1;
                                 #pragma HLS RESOURCE variable=mul1_1 core=FMul_meddsp
                                 #pragma HLS RESOURCE variable=mul1_2 core=FMul_meddsp
-                                #pragma HLS RESOURCE variable=mul1_3 core=FMul_meddsp
-                                #pragma HLS RESOURCE variable=mul1_4 core=FMul_meddsp
+                                //#pragma HLS RESOURCE variable=mul1_3 core=FMul_meddsp
+                                //#pragma HLS RESOURCE variable=mul1_4 core=FMul_meddsp
                                 #pragma HLS RESOURCE variable=mul2_1 core=FAddSub_nodsp
-                                #pragma HLS RESOURCE variable=mul2_2 core=FAddSub_nodsp
+                                //#pragma HLS RESOURCE variable=mul2_2 core=FAddSub_nodsp
                                 mul1_1 = inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][0][l*k*k+i*k+j];
                                 mul1_2 = inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j];
-                                mul1_3 = inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j];
-                                mul1_4 = inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j];
+                                //mul1_3 = inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j];
+                                //mul1_4 = inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j];
 
                                 mul2_1 = mul1_1 + mul1_2;
-                                mul2_2 = mul1_3 + mul1_4;
-                                mul3_1 = mul2_1 + mul2_2;
+                                //mul2_2 = mul1_3 + mul1_4;
+                                //mul3_1 = mul2_1 + mul2_2;
+                                mul3_1 = mul2_1;
                                 float prev = outputBRAM[o_cc][d][y][x];
                                 //std::cout << "writing to [" << o_cc << "][" << d << "][" << y << "][" << x << "]\n";
                                 outputBRAM[o_cc][d][y][x] += mul3_1;
