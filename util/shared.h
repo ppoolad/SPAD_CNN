@@ -17,7 +17,7 @@ std::vector<std::map<std::string, int> > readBatchParams(std::string imageRootDi
 int readInputBatches(std::string imageRootDir, std::vector<std::map<std::string, int> > batch_layer_params, int numBatches, std::string layer, const int max_alloc, std::vector<float *> &ptr, int layerType);
 int readOutputBatches(std::string imageRootDir, std::vector<std::map<std::string, int> > batch_layer_params, int numBatches, std::string layer, const int max_alloc, std::vector<float *> &ptr, int layerType);
 
-int readInputBatchesWithNorm(std::string imageRootDir,std::vector<float *>dma_input_vec, std::vector<std::map<std::string, int> > batch_layer_params, int numBatches,std::string layer, int layer_index, std::string layer_prv, const int max_alloc, int layerType, bool ReadinputFlag);
+int readInputBatchesWithNorm(std::string imageRootDir,std::vector<float *>dma_input_vec, std::vector<std::map<std::string, int> > batch_layer_params, int numBatches,std::string layer, int layer_index, std::string layer_prv, const int max_alloc, int layerType, std::string input_name, bool ReadinputFlag);
 
 int allocate_memory(std::vector<float *> &dma_input_vec, std::vector<std::map<std::string, int> > batch_layer_params, int numBatches, int layerType);
 

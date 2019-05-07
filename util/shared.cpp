@@ -417,7 +417,7 @@ int readRawFileNoAlloc(const string fname,
   return retval;
 }
 
-int readInputBatchesWithNorm(string imageRootDir,vector<float *>dma_input_vec, vector<map<string, int> > batch_layer_params, int numBatches, string layer, int layer_index, string layer_prv, const int max_alloc, int layerType, bool ReadinputFlag){
+int readInputBatchesWithNorm(string imageRootDir,vector<float *>dma_input_vec, vector<map<string, int> > batch_layer_params, int numBatches, string layer, int layer_index, string layer_prv, const int max_alloc, int layerType, string input_name, bool ReadinputFlag){
   ostringstream ss, sindex, sindexplus;
   // Read inputs
   // Inputs are packed together as weights, biases and input values from different places
@@ -436,7 +436,7 @@ int readInputBatchesWithNorm(string imageRootDir,vector<float *>dma_input_vec, v
         float * dma_input = dma_input_vec[i];
         string imageDir     = imageRootDir + ss.str()+ "/" + layer+ "." + sindex.str();
         string imageDir_plus= imageRootDir + ss.str()+ "/" + layer+ "." + sindexplus.str();
-        string imageDir_prv = imageRootDir + ss.str() + "/" + layer_prv;
+        string imageDir_prv = imageRootDir + ss.str() + "/";
             if(layerType == CONV){
                   weight_size = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["output_dim"]*
                                 batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
@@ -479,7 +479,7 @@ int readInputBatchesWithNorm(string imageRootDir,vector<float *>dma_input_vec, v
                     return 1;
                 dma_input += bias_size;
                 if (ReadinputFlag){
-                    if (readRawFileNoAlloc(imageDir_prv + ".dma_out", dma_input, input_size, weight_size+bias_size))
+                    if (readRawFileNoAlloc(imageDir_prv + input_name, dma_input, input_size, weight_size+bias_size))
                         return 1;
                 }
                 printf("ptr adr %p \n", dma_input);

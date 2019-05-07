@@ -41,8 +41,9 @@ int main(int argc, char** argv)
 {
     string imageRootDir = "data/SPAD/batch_";
     int numBatches = 1;
-    string layers[NUM_LAYERS] = {"conv0", "conv1", "conv2", "conv3"};
-    int layers_type[NUM_LAYERS] = {CONV3D, CONV3D, CONV3D, CONV3D};
+    string layers[NUM_LAYERS]           = {"conv0"   ,"conv1"   , "conv2"   , "conv3"};
+    string input_file_names[NUM_LAYERS] = {"spadfile","ds1out"  , "ds2out"  , "ds3out"};
+    int layers_type[NUM_LAYERS]         = {CONV3D,    CONV3D,     CONV3D,     CONV3D};
     vector<float *> dma_input_vec;
     vector<float *> gold_outputs_vec;
     //static float dma_in[
@@ -57,7 +58,7 @@ int main(int argc, char** argv)
         float total_error = 0.0;
         vector <map<string, int>> batch_layer_params;
         // handeling middle layers
-        while (l <4 && middle_layer_count <= 6) {
+        while ((layers[l] == "conv0" || layers[l] == "conv1" || layers[l] == "conv2") && middle_layer_count <= 6) {
             ostringstream ss,mlc;
             mlc << middle_layer_count;
             string layer = layers[l]+ "." + mlc.str();
@@ -69,7 +70,7 @@ int main(int argc, char** argv)
                 max_allocated = allocate_memory(dma_input_vec,batch_layer_params, numBatches, layers_type[l]);
             // read inputs into allocated memory
             if (readInputBatchesWithNorm(imageRootDir, dma_input_vec, batch_layer_params, numBatches, layers[l], middle_layer_count, layer_prv,
-                                         max_allocated, layers_type[l], false)) return 1;
+                                         max_allocated, layers_type[l], input_file_names[l], false)) return 1;
             // start calculation
             auto start = chrono::system_clock::now();
             for (int i = 0; i < numBatches; i++) {
