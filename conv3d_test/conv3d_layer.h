@@ -19,9 +19,9 @@
 #define NUM_BNORM_PARAMS    4
 
 #define Tc      2   // <!!!>if changing this change Tn //tile for channels // keep this 4 other wise change conv_compute
-#define Tod		9   //tile for input  dimension
-#define Toy		9
-#define Tox		9
+#define Tod		3   //tile for input  dimension
+#define Toy		3
+#define Tox		3
 
 #define Tn      8//Tc*4 // for batch normalization
 
