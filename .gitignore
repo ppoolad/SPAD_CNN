@@ -6,6 +6,7 @@ vivado_*
 *dcp
 *bit
 *_proj
+sourceme.sh
 .idea/
 usage_statistics_webtalk.html
 usage_statistics_webtalk.xml
@@ -15,4 +16,3 @@ data/
 *.m
 .vscode/
 conv3d_layer
-sourceme.sh
