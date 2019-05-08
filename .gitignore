@@ -15,3 +15,4 @@ data/
 *.m
 .vscode/
 conv3d_layer
+sourceme.sh
