@@ -1,13 +1,15 @@
 #ifndef _CONV_LAYER_H
 #define _CONV_LAYER_H
 
+
 // Limits
 #define MAX_BATCH           1
 #define MAX_KERNEL_SIZE     9
 #define MAX_INPUT_DIMS      1024
 #define MAX_OUTPUT_DIMS     1024
-#define MAX_OUTPUT_CHANNELS 40
-#define MAX_INPUT_CHANNELS  40
+//should increase to 40 to cover all the layers
+#define MAX_OUTPUT_CHANNELS 16
+#define MAX_INPUT_CHANNELS  16
 #define MAX_INPUT_WIDTH     64
 #define MAX_INPUT_HEIGHT    64
 #define MAX_OUTPUT_WIDTH    64
@@ -18,12 +20,16 @@
 
 #define NUM_BNORM_PARAMS    4
 
-#define Tc      2   // <!!!>if changing this change Tn //tile for channels // keep this 4 other wise change conv_compute
-#define Tod		2   //tile for input  dimension
-#define Toy		2
-#define Tox		2
+//tile for channels  // <!!!>if changing this change Tn
+#define Tco     2
+// keep this 4 other wise change conv_compute
+#define Tci     2
+//tile for input  dimension
+#define Tod		10
+#define Toy		5
+#define Tox		5
 
-#define Tn      8  //Tc*4 // for batch normalization
+#define Tn      8  //Tco*4 // for batch normalization
 
 #define ind_size	Tod+MAX_KERNEL_SIZE-1
 #define iny_size	Toy+MAX_KERNEL_SIZE-1

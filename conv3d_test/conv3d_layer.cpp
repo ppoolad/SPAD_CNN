@@ -67,27 +67,27 @@ void conv3d_layer(float * mem,            // global memory pointer
     //on-chip BRAM buffer/////////////
     //PING-PONG RAM is appied, again for the detail please refer to the
     //FPGA 2015 paper : "Optimizing FPGA-based Accelerator Design for Deep Convolutional Neural Networks"
-    float biasBRAM[MAX_OUTPUT_CHANNELS/Tc][Tc];
+    float biasBRAM[MAX_OUTPUT_CHANNELS/Tco][Tco];
     #pragma HLS array_partition variable=biasBRAM complete dim=2
 
-    float normBRAM[MAX_OUTPUT_CHANNELS/Tc][Tn];
+    float normBRAM[MAX_OUTPUT_CHANNELS/Tco][Tn];
     #pragma HLS array_partition variable=normBRAM complete dim=2
 
     // should not usign ping pong for the weights since the ic and oc are small yet 16 but for bigger layers should change
-    float inputBRAM_ping   [Tc][ind_size][iny_size][inx_size];
-    float weightBRAM_ping  [Tc][Tc][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE];
+    float inputBRAM_ping   [Tci][ind_size][iny_size][inx_size];
+    float weightBRAM_ping  [Tco][Tci][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE];
     #pragma HLS array_partition variable=inputBRAM_ping complete dim=1
     #pragma HLS array_partition variable=weightBRAM_ping complete dim=2
     #pragma HLS array_partition variable=weightBRAM_ping complete dim=1
 
-    float inputBRAM_pong    [Tc][ind_size][iny_size][inx_size];
-    float weightBRAM_pong   [Tc][Tc][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE];
+    float inputBRAM_pong    [Tci][ind_size][iny_size][inx_size];
+    float weightBRAM_pong   [Tco][Tci][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE];
     #pragma HLS array_partition variable=inputBRAM_pong complete dim=1
     #pragma HLS array_partition variable=weightBRAM_pong complete dim=2
     #pragma HLS array_partition variable=weightBRAM_pong complete dim=1
 
 
-    float outputBRAM[Tc][Tod][Toy][Tox];
+    float outputBRAM[Tco][Tod][Toy][Tox];
     #pragma HLS array_partition variable=outputBRAM complete dim=1
     /////////////////////////////////
     const int od_limit = (od >= Tod) ? Tod : od;
@@ -124,9 +124,9 @@ void conv3d_layer(float * mem,            // global memory pointer
                     //std::cout << "bias[0][0] = "  << biasBRAM[0][0] << "\n";
                     // Output Channels
                     oc_loop:
-                    for(int o_c = 0; o_c < oc; o_c+=Tc )
+                    for(int o_c = 0; o_c < oc; o_c+=Tco )
                     {
-                        ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_CHANNELS/Tc)
+                        ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_CHANNELS/Tco)
                         // Set bias
                         read_bias_to_output(outputBRAM,biasBRAM,o_c,bb,od_limit,oy_limit,ox_limit);
 
@@ -137,12 +137,12 @@ void conv3d_layer(float * mem,            // global memory pointer
 
                         //std::cout << "read init"<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
                         //std::cout << "ic = " << ic << "Tc = " << Tc << "residue" << (ic/Tc)%2 << "\n";
-                        for(int i_c = Tc; i_c < ic; i_c+=Tc )
+                        for(int i_c = Tci; i_c < ic; i_c+=Tci )
                         {
                             //std::cout << "i_c = " << i_c << "\n";
                             // unroll II
-                            ADD_PRAGMA(HLS loop_tripcount max = MAX_INPUT_CHANNELS/Tc )
-                            if ((i_c/Tc)%2)
+                            ADD_PRAGMA(HLS loop_tripcount max = MAX_INPUT_CHANNELS/Tci )
+                            if ((i_c/Tci)%2)
                             {
                                // std :: cout << "read ping"<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
                                 conv_compute(outputBRAM,inputBRAM_ping,weightBRAM_ping,k,s,od_limit,oy_limit,ox_limit, o_c,i_c,o_x, o_y, o_d);
@@ -158,7 +158,7 @@ void conv3d_layer(float * mem,            // global memory pointer
                             }
                         }
                         //for the last one to choose between ping and pong
-                        if (((ic/Tc) % 2) || ic<Tc)
+                        if (((ic/Tci) % 2) || ic<Tci)
                             conv_compute(outputBRAM,inputBRAM_ping,weightBRAM_ping,k,s,od_limit,oy_limit,ox_limit,o_c,ic-1,o_x, o_y, o_d);
                         else
                             conv_compute(outputBRAM,inputBRAM_pong,weightBRAM_pong,k,s,od_limit,oy_limit,ox_limit,o_c,ic-1,o_x, o_y, o_d);

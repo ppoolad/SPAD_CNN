@@ -23,7 +23,7 @@
 #  define htols(x)     __bswap_16(x)
 #endif
 
-    #define PRINT
+#define PRINT
 
 using namespace std;
 

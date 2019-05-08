@@ -5,7 +5,7 @@
 #include "math.h"
 
 void read_bias(
-        float biasBRAM[MAX_OUTPUT_CHANNELS/Tc][Tc],
+        float biasBRAM[MAX_OUTPUT_CHANNELS/Tco][Tco],
         float * mem,            // global memory pointer
         int bias_offset,
         const int oc)
@@ -13,14 +13,14 @@ void read_bias(
     for (int i = 0; i < oc; i++) {
         ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_CHANNELS)
         #pragma HLS pipeline II=1
-        biasBRAM[i/Tc][i%Tc] = mem[bias_offset+ i];
+        biasBRAM[i/Tco][i%Tco] = mem[bias_offset+ i];
         //std::cout << "bias i = " << biasBRAM[i/Tc][i%Tc] << "\n";
     }
 
 }
 
 void read_bnorm(
-        float normBRAM[MAX_OUTPUT_CHANNELS/Tc][Tn],
+        float normBRAM[MAX_OUTPUT_CHANNELS/Tco][Tn],
         float * mem,            // global memory pointer
         int norm_offset,
         const int on)
@@ -38,8 +38,8 @@ void read_bnorm(
 }
 
 void read_bias_to_output(
-        float outputBRAM[Tc][Tod][Toy][Tox],
-        float biasBRAM[MAX_OUTPUT_CHANNELS/Tc][Tc],
+        float outputBRAM[Tco][Tod][Toy][Tox],
+        float biasBRAM[MAX_OUTPUT_CHANNELS/Tco][Tco],
         int o_c,	//current output dimension index
         int bb,		//current batch index
         const int od_limit,
@@ -53,9 +53,9 @@ void read_bias_to_output(
             for (int x = 0; x < ox_limit; x++) {
                 ADD_PRAGMA(HLS loop_tripcount max = Tox)
                 #pragma HLS pipeline II = 1
-                for (int o_cc = 0; o_cc < Tc; o_cc++) {
+                for (int o_cc = 0; o_cc < Tco; o_cc++) {
                     #pragma HLS unroll
-                    outputBRAM[o_cc][d][y][x] = biasBRAM[o_c/Tc][o_cc];
+                    outputBRAM[o_cc][d][y][x] = biasBRAM[o_c/Tco][o_cc];
                     //std::cout << "output BRAM[" << o_c+o_cc << "] = " << outputBRAM[o_cc][d][y][x] << " comp " << biasBRAM[o_c/Tc][o_cc] << "\n";
                 }
             }
@@ -67,7 +67,7 @@ void read_bias_to_output(
 void mem_read_weight(
         float * mem,            // global memory pointer
         int   weight_offset,    // offset of weights
-        float weightBRAM[Tc][Tc][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE],
+        float weightBRAM[Tco][Tci][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE],
         const int k,
         const int oc,
         const int ic,
@@ -80,9 +80,9 @@ void mem_read_weight(
     for (int i = 0; i < k*k*k; i++)
     {
         ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE)
-        for (int o_cc = 0; o_cc < Tc; o_cc++)
+        for (int o_cc = 0; o_cc < Tco; o_cc++)
         {
-            for (int i_cc=0; i_cc < Tc; i_cc++)
+            for (int i_cc=0; i_cc < Tci; i_cc++)
             {
                 #pragma HLS pipeline II=1
                 weightBRAM[o_cc][i_cc][i] = mem[weight_offset + (o_c+o_cc)*ic*k*k*k + (i_c+i_cc)*k*k*k + i];
@@ -97,7 +97,7 @@ void mem_read_weight(
 void mem_read_input(
         float * mem,            // global memory pointer
         int   input_offset,     // offset of inputs
-        float inputBRAM [Tc][ind_size][iny_size][inx_size],
+        float inputBRAM [Tci][ind_size][iny_size][inx_size],
         const int ic,
         const int id,
         const int ix,
@@ -129,7 +129,7 @@ void mem_read_input(
                         ADD_PRAGMA(HLS loop_tripcount max = Toy)
                         for (int x = 0; x < ox_limit; x++) {
                             ADD_PRAGMA(HLS loop_tripcount max = Tox)
-                            for (int i_cc=0; i_cc < Tc; i_cc++) {
+                            for (int i_cc=0; i_cc < Tci; i_cc++) {
                                 #pragma HLS pipeline II=1
                                 int i_x = (o_x+x)*s - pad + iix;
                                 int i_y = (o_y+y)*s - pad + iiy;
@@ -153,9 +153,9 @@ void mem_read_input(
 
 ////////////////////////to do convolution//////////////////////
 void conv_compute(
-        float outputBRAM[Tc][Tod][Toy][Tox],
-        float inputBRAM[Tc][ind_size][iny_size][inx_size],
-        float weightBRAM[Tc][Tc][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE],
+        float outputBRAM[Tco][Tod][Toy][Tox],
+        float inputBRAM[Tci][ind_size][iny_size][inx_size],
+        float weightBRAM[Tco][Tci][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE],
         const int k,
         const int s,
         const int od_limit,
@@ -181,7 +181,7 @@ void conv_compute(
                         for (int x = 0; x < ox_limit; x++) {
                             ADD_PRAGMA(HLS loop_tripcount max = Tox)
                             #pragma HLS pipeline II=1
-                            for (int o_cc = 0; o_cc < Tc; o_cc++) {
+                            for (int o_cc = 0; o_cc < Tco; o_cc++) {
                                 #pragma HLS unroll
                                 #pragma HLS dependence variable=inputBRAM inter false
                                 #pragma HLS dependence variable=weightBRAM inter false
@@ -235,8 +235,8 @@ void conv_compute(
 void mem_write(
         float * mem,            // global memory pointer
         int   output_offset,       // offset of inputs
-        float outputBRAM[Tc][Tod][Toy][Tox],
-        float normBRAM[MAX_OUTPUT_CHANNELS/Tc][Tn],
+        float outputBRAM[Tco][Tod][Toy][Tox],
+        float normBRAM[MAX_OUTPUT_CHANNELS/Tco][Tn],
         const int oc,
         const int od,
         const int oy,
@@ -252,8 +252,8 @@ void mem_write(
         int bnorm,
         int relu)
 {
-    for (int o_cc=0; o_cc < Tc; o_cc++) {
-        ADD_PRAGMA(HLS loop_tripcount max = Tc)
+    for (int o_cc=0; o_cc < Tco; o_cc++) {
+        ADD_PRAGMA(HLS loop_tripcount max = Tco)
         for (int d = 0; d < od_limit; d++) {
             ADD_PRAGMA(HLS loop_tripcount max = Tod)
             for (int y = 0; y < oy_limit; y++) {
@@ -265,7 +265,7 @@ void mem_write(
                     //std::cout << "writing " << output_element << "\n";
                     if(bnorm)
                     {
-                        int i0 = o_c/Tc;
+                        int i0 = o_c/Tco;
                         int i1 = o_cc*NUM_BNORM_PARAMS;
                         //(output-mean)*gamma/sqrt(var + EPSILON)-beta;
                         //if ((o_cc+o_c)==0)
