@@ -6,10 +6,27 @@ vivado_*
 *dcp
 *bit
 *_proj
+sourceme.sh
+.idea/
 usage_statistics_webtalk.html
 usage_statistics_webtalk.xml
 hd_visual
 *timing
-data/
 *.m
 .vscode/
+<<<<<<< HEAD
+/data/
+/data/SPAD/batch_0/up0out
+/data/SPAD/batch_0/up1out
+conv3d_layer
+all_layer
+conv_trans3d_layer
+testfilters
+testinput
+testnormoutput
+testnormreluoutput
+testoutput
+.idea/
+=======
+conv3d_layer
+>>>>>>> origin/optmized_conv
