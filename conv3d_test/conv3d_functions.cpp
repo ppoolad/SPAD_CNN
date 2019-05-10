@@ -124,11 +124,11 @@ void mem_read_input(
             for (int iix = 0; iix < k; iix++) {
                 ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
                 for (int d = 0; d < od_limit; d++) {
-                    ADD_PRAGMA(HLS loop_tripcount max = Tod)
+                    ADD_PRAGMA(HLS loop_tripcount max = TOD)
                     for (int y = 0; y < oy_limit; y++) {
-                        ADD_PRAGMA(HLS loop_tripcount max = Toy)
+                        ADD_PRAGMA(HLS loop_tripcount max = TOY)
                         for (int x = 0; x < ox_limit; x++) {
-                            ADD_PRAGMA(HLS loop_tripcount max = Tox)
+                            ADD_PRAGMA(HLS loop_tripcount max = TOX)
                             for (int i_cc=0; i_cc < TCI; i_cc++) {
                                 #pragma HLS pipeline II=1
                                 int i_x = (o_x+x)*s - pad + iix;
@@ -175,11 +175,11 @@ void conv_compute(
             for (int j = 0; j < k; j++) {
                 ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
                 for (int d = 0; d < od_limit; d++) {
-                    ADD_PRAGMA(HLS loop_tripcount max = Tod)
+                    ADD_PRAGMA(HLS loop_tripcount max = TOD)
                     for (int y = 0; y < oy_limit; y++) {
-                        ADD_PRAGMA(HLS loop_tripcount max = Toy)
+                        ADD_PRAGMA(HLS loop_tripcount max = TOY)
                         for (int x = 0; x < ox_limit; x++) {
-                            ADD_PRAGMA(HLS loop_tripcount max = Tox)
+                            ADD_PRAGMA(HLS loop_tripcount max = TOX)
                             #pragma HLS pipeline II=1
                             for (int o_cc = 0; o_cc < TCO; o_cc++) {
                                 #pragma HLS unroll
@@ -253,13 +253,13 @@ void mem_write(
         int relu)
 {
     for (int o_cc=0; o_cc < TCO; o_cc++) {
-        ADD_PRAGMA(HLS loop_tripcount max = Tco)
+        ADD_PRAGMA(HLS loop_tripcount max = TCO)
         for (int d = 0; d < od_limit; d++) {
-            ADD_PRAGMA(HLS loop_tripcount max = Tod)
+            ADD_PRAGMA(HLS loop_tripcount max = TOD)
             for (int y = 0; y < oy_limit; y++) {
-                ADD_PRAGMA(HLS loop_tripcount max = Toy)
+                ADD_PRAGMA(HLS loop_tripcount max = TOY)
                 for (int x = 0; x < ox_limit; x++) {
-                    ADD_PRAGMA(HLS loop_tripcount max = Tox)
+                    ADD_PRAGMA(HLS loop_tripcount max = TOX)
                     #pragma HLS pipeline II=1
                     float output_element = outputBRAM[o_cc][d][y][x];
                     //std::cout << "writing " << output_element << "\n";
