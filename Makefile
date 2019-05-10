@@ -60,7 +60,7 @@ conv_trans3d_hls: conv_trans3d_test/* util/*
 fc_hls: fc_test/*  util/*
 	vivado_hls hls_proj/fc_hls.tcl
 
-maxpool_hls: maxpool_test/* util/* 
+maxpool_hls: maxpool_test/* util/*
 	vivado_hls hls_proj/maxpool_hls.tcl
 
 unified_fc_conv_hls: conv_fc_unified_test/* util/* 

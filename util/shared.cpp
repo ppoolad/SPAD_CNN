@@ -46,10 +46,10 @@ std::map<std::string, int> readParams(const std::string fname)
         params[key] = InnerProduct;
       else if (!svalue.compare("Pooling"))
         params[key] = Pooling;
-      else if (!svalue.compare("TrnsConvolution"))
-        params[key] = Pooling;
+      else if (!svalue.compare("TransConvolution"))
+        params[key] = CONV3DT;
       else {
-        cerr << "Invalid Layer Type!\n";
+        cerr << "Invalid Layer Type " << svalue << " !\n";
         return std::map<std::string, int>();
       }
     } else if (!key.compare("name")) { 
@@ -228,7 +228,7 @@ int readInputBatches(string imageRootDir, vector<map<string, int> > batch_layer_
 
 }
 
-int readOutputBatches(string imageRootDir, vector<map<string, int> > batch_layer_params, int numBatches, string layer, const int max_alloc, vector <float *> &ptr, int layerType){
+int readOutputBatches(string filename, string imageRootDir, vector<map<string, int> > batch_layer_params, int numBatches, string layer, const int max_alloc, vector <float *> &ptr, int layerType){
   float * gold_outputs;
   ostringstream ss;
   
@@ -256,46 +256,7 @@ int readOutputBatches(string imageRootDir, vector<map<string, int> > batch_layer
   	             batch_layer_params[i]["batch_size"];
         }
   	// Read gold outputs
-  	if (readRawFile(imageDir + "/output",// this is for test change it to "out",
-                  gold_outputs,
-                  size,
-                  max_alloc))
-    	return 1;
-	ptr.push_back(gold_outputs);
-    	gold_outputs += size;
-  }
-  return 0;
-
-}
-int readOutputBatches(string outname, string imageRootDir, vector<map<string, int> > batch_layer_params, int numBatches, string layer, const int max_alloc, vector <float *> &ptr, int layerType){
-  float * gold_outputs;
-  ostringstream ss;
-  
-
-  // Read inputs
-  // Inputs are packed together as weights, biases and input values
-  // Allocate enough space for outputs
-
-  int size;
-  for(int i=0; i<numBatches; i++){
-        ss.str("");
-    	ss << i;
-  	string imageDir = imageRootDir + ss.str() + "/" + layer;
-        if(layerType == CONV || layerType == POOL ){
-  	  size =      batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*
-                  batch_layer_params[i]["output_height"]*batch_layer_params[i]["batch_size"];
-        }else if(layerType == CONV3D){
-          size =      batch_layer_params[i]["output_channel"]*batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*
-                      batch_layer_params[i]["output_height"]*batch_layer_params[i]["batch_size"];
-
-        }
-	else{
-  	  size =      batch_layer_params[i]["output_dim"]*
-                      batch_layer_params[i]["batch_size"];
-
-        }
-  	// Read gold outputs
-  	if (readRawFile(imageDir + outname,
+  	if (readRawFile(imageDir + filename,//"/testnormreluoutput", //"/testoutput",// "/up3out",// this is for test change it to "out",
                   gold_outputs,
                   size,
                   max_alloc))
@@ -334,12 +295,11 @@ float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *
     	totalNumOutputs += b*num_outputs;
     	outputs = mem[i] + b*num_inputs+num_biases+num_weights;
     }
-    else if(layerType == CONV3D){
-    	num_inputs =  batch_layer_params[i]["input_channel"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_width"]*
-    		   batch_layer_params[i]["input_height"];
-
+    else if(layerType == CONV3D || layerType == CONV3DT){
+    	num_inputs = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_width"]*
+        batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_channel"];
     	num_biases = batch_layer_params[i]["output_channel"];
-      num_bnormpars = batch_layer_params[i]["output_channel"]*4;
+        num_bnormpars = batch_layer_params[i]["output_channel"]*4;
     	num_weights = batch_layer_params[i]["input_channel"]*batch_layer_params[i]["output_channel"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
     	num_outputs = batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*batch_layer_params[i]["output_height"]*batch_layer_params[i]["output_channel"];
     	totalNumOutputs += b*num_outputs;
@@ -366,18 +326,18 @@ float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *
     for (int j = 0; j < b*num_outputs; j++)
     {
       float err = fabs(outputs[j] - golden_output[i][j]);
-// #ifdef PRINT
-//       int b1 = batch_layer_params[i]["output_dim"];
-//       int w4 = batch_layer_params[i]["output_width"];
-//       int h3 = batch_layer_params[i]["output_height"];
-//       int c2 = batch_layer_params[i]["output_channel"];
-//       if (err > 0.1) {
-//           int w4_2 = j%(w4);
-//           int h3_2 = (j/w4) % (h3);
-//           int c2_2 = (j/(w4*h3)) % c2;
-//           std::cout << "output[" << c2_2 << "][" << h3_2 << "][" << w4_2 << "] = "<< outputs[j] << "VS" << golden_output[i][j]<< '\n';
-//       }
-// #endif
+#ifdef PRINT
+      int b1 = batch_layer_params[i]["output_dim"];
+      int w4 = batch_layer_params[i]["output_width"];
+      int h3 = batch_layer_params[i]["output_height"];
+      int c2 = batch_layer_params[i]["output_channel"];
+      if (err > 0.1) {
+          int w4_2 = j%(w4);
+          int h3_2 = (j/w4) % (h3);
+          int c2_2 = (j/(w4*h3)) % c2;
+          std::cout << "output[" << c2_2 << "][" << h3_2 << "][" << w4_2 << "] = "<< outputs[j] << "VS" << golden_output[i][j]<< '\n';
+      }
+#endif
       
       total += err*err;
       //printf("HW: %.6f GOLD:%.6f\n",fabs(outputs[j]),golden_output[i][j] );
@@ -458,7 +418,7 @@ int readRawFileNoAlloc(const string fname,
   return retval;
 }
 
-int readInputBatchesWithNorm(string imageRootDir,vector<float *>dma_input_vec, vector<map<string, int> > batch_layer_params, int numBatches, string layer, int layer_index, string layer_prv, const int max_alloc, int layerType, bool ReadinputFlag){
+int readInputBatchesWithNorm(string imageRootDir,vector<float *>dma_input_vec, vector<map<string, int> > batch_layer_params, int numBatches, string layer, int layer_index, string layer_prv, const int max_alloc, int layerType, string input_name, bool ReadinputFlag){
   ostringstream ss, sindex, sindexplus;
   // Read inputs
   // Inputs are packed together as weights, biases and input values from different places
@@ -477,7 +437,7 @@ int readInputBatchesWithNorm(string imageRootDir,vector<float *>dma_input_vec, v
         float * dma_input = dma_input_vec[i];
         string imageDir     = imageRootDir + ss.str()+ "/" + layer+ "." + sindex.str();
         string imageDir_plus= imageRootDir + ss.str()+ "/" + layer+ "." + sindexplus.str();
-        string imageDir_prv = imageRootDir + ss.str() + "/" + layer_prv;
+        string imageDir_prv = imageRootDir + ss.str() + "/";
             if(layerType == CONV){
                   weight_size = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["output_dim"]*
                                 batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
@@ -520,7 +480,7 @@ int readInputBatchesWithNorm(string imageRootDir,vector<float *>dma_input_vec, v
                     return 1;
                 dma_input += bias_size;
                 if (ReadinputFlag){
-                    if (readRawFileNoAlloc(imageDir_prv + ".dma_out", dma_input, input_size, weight_size+bias_size))
+                    if (readRawFileNoAlloc(imageDir_prv + input_name, dma_input, input_size, weight_size+bias_size))
                         return 1;
                 }
                 printf("ptr adr %p \n", dma_input);

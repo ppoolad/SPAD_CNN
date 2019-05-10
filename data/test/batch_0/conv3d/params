@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 output_height 8
 name conv3d
 stride 1
 output_channel 4
 input_channel 4
+=======
+output_height 8    
+name conv3d
+stride 1
+output_channel 16
+input_channel 1
+>>>>>>> origin/optmized_conv
 output_dim 128
 batch_size 1
 enable_relu 1

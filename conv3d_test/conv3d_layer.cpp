@@ -1,28 +1,32 @@
+#include <iostream>
 #include <algorithm>
 #include <float.h>
 #include "conv3d_layer.h"
+#include "conv3d_functions.h"
 #include "math.h"
 #define EPSILON 0.00001
 
+using namespace std;
+
 void conv3d_layer(float * mem,            // global memory pointer
-                int input_offset,       // offset of inputs
-                int parameters_offset,  // offset of parameters
-                int output_offset,      // offset of outputs
-                const int b,            // batch size
-                const int od,           // output dimensions
-                const int ox,           // output width
-                const int oy,           // output height
-                const int oc,           // output channel
-                const int ic,           // input channel
-                const int id,           // input dimensions
-                const int ix,           // input width
-                const int iy,           // input height
-                const int s,            // stride
-                const int k,            // kernel size
-                const int pad,          // padding
-                const int relu,         //relu enable
-                const int bnorm       // batch norm enable
-                )
+                  int input_offset,       // offset of inputs
+                  int parameters_offset,  // offset of parameters
+                  int output_offset,      // offset of outputs
+                  const int b,            // batch size
+                  const int od,           // output dimensions
+                  const int ox,           // output width
+                  const int oy,           // output height
+                  const int oc,           // output channel
+                  const int ic,           // input channel
+                  const int id,           // input dimensions
+                  const int ix,           // input width
+                  const int iy,           // input height
+                  const int s,            // stride
+                  const int k,            // kernel size
+                  const int pad,          // padding
+                  const int relu,         //relu enable
+                  const int bnorm       // batch norm enable
+)
 
 {
 
@@ -47,84 +51,124 @@ void conv3d_layer(float * mem,            // global memory pointer
 #pragma HLS INTERFACE s_axilite port=parameters_offset
 #pragma HLS INTERFACE s_axilite port=output_offset
 #pragma HLS INTERFACE s_axilite port=return bundle=CTRL_BUS
- 
-  int num_weights = ic*oc*k*k*k;
-  int num_biases = oc;
-  int num_input = b*ic*id*ix*iy;
-  int num_output = b*oc*od*ox*oy;
-  int num_bnorm  = oc; //mean + var + beta + ghama
-  // input weight + bias + input + 
-  // Batch
-// float kernel_buffer[MAX_INPUT_CHANNELS*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE] = {0.0};
-// #pragma HLS ARRAY_PARTITION variable=kernel_buffer cyclic 
-BATCH:  for (int b_=0; b_< b; b_++)
-  {
-    // Output Channels
-OC:    for(int o_c = 0; o_c < oc; o_c++ )
+
+    int num_weights = ic*oc*k*k*k;
+    int num_biases = oc;
+    int num_input = b*ic*id*ix*iy;
+    int num_output = b*oc*od*ox*oy;
+    int num_bnorm  = oc*4; //mean + var + beta + ghama
+    // input weight + bias + input +
+    int w_offset = parameters_offset/sizeof(float);
+    int b_offset = parameters_offset/sizeof(float) + num_weights;
+    int n_offset = parameters_offset/sizeof(float) + num_weights + num_biases;
+    int i_offset = input_offset/sizeof(float);
+    int o_offset = output_offset/sizeof(float);
+
+    //on-chip BRAM buffer/////////////
+    //PING-PONG RAM is appied, again for the detail please refer to the
+    //FPGA 2015 paper : "Optimizing FPGA-based Accelerator Design for Deep Convolutional Neural Networks"
+    float biasBRAM[MAX_OUTPUT_CHANNELS/TCO][TCO];
+    #pragma HLS array_partition variable=biasBRAM complete dim=2
+
+    float normBRAM[MAX_OUTPUT_CHANNELS/TCO][TN];
+    #pragma HLS array_partition variable=normBRAM complete dim=2
+
+    // should not usign ping pong for the weights since the ic and oc are small yet 16 but for bigger layers should change
+    float inputBRAM_ping   [TCI][IND_SIZE][INY_SIZE][INX_SIZE];
+    float weightBRAM_ping  [TCO][TCI][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE];
+    #pragma HLS array_partition variable=inputBRAM_ping complete dim=1
+    #pragma HLS array_partition variable=weightBRAM_ping complete dim=2
+    #pragma HLS array_partition variable=weightBRAM_ping complete dim=1
+
+    float inputBRAM_pong    [TCI][IND_SIZE][INY_SIZE][INX_SIZE];
+    float weightBRAM_pong   [TCO][TCI][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE];
+    #pragma HLS array_partition variable=inputBRAM_pong complete dim=1
+    #pragma HLS array_partition variable=weightBRAM_pong complete dim=2
+    #pragma HLS array_partition variable=weightBRAM_pong complete dim=1
+
+
+    float outputBRAM[TCO][TOD][TOY][TOX];
+    #pragma HLS array_partition variable=outputBRAM complete dim=1
+    /////////////////////////////////
+    const int od_limit = (od >= TOD) ? TOD : od;
+    const int oy_limit = (oy >= TOY) ? TOY : oy;
+    const int ox_limit = (ox >= TOX) ? TOX : ox;
+
+    //load biases
+    read_bias(biasBRAM, mem, b_offset,  num_biases);
+
+    //load bnorm parmas
+    read_bnorm(normBRAM, mem, n_offset, num_bnorm);
+
+    // Batch
+    batch_loop:
+    for (int bb=0; bb< b; bb++)
     {
-      float mean  = mem[parameters_offset/sizeof(float) + num_weights + oc +                o_c];
-      float var   = mem[parameters_offset/sizeof(float) + num_weights + oc +  num_bnorm*1 + o_c];
-      float gamma = mem[parameters_offset/sizeof(float)+ num_weights + oc +  num_bnorm*2 + o_c];
-      float beta  = mem[parameters_offset/sizeof(float)  + num_weights + oc +  num_bnorm*3 + o_c];
-      float num   =  gamma/sqrt(var + EPSILON);
-
-//           for(int j = 0; j < ic ; j++){
-//             for(int i = 0; i < k*k*k; i++)
-//             {
-// #pragma HLS PIPELINE
-//               kernel_buffer[i] = mem[parameters_offset/sizeof(float) +j*oc*k*k*k + o_c*k*k*k + i];
-//             }
-//           }
-      // Output Dimensions (Feature Maps)
-OD:      for (int o_d = 0; o_d < od; o_d++)
-      {
+        ADD_PRAGMA(HLS loop_tripcount max = MAX_BATCH)
         // Output Y Dimension
-OY:        for (int o_y = 0; o_y < oy; o_y++)
+        oy_loop:
+        for (int o_y = 0; o_y < oy; o_y+=TOY)
         {
-          // Output X Dimension
-OX:          for (int o_x = 0; o_x < ox; o_x++)
-          {// for each ox we need to have IC*K x K x K inputs and weights -> our largest filter is 9, largest channel is 40 -> 729*40
-            // Set bias 
-            
-
-
-
-            float output_element = mem[parameters_offset/sizeof(float) + num_weights + o_c];
-
-            // Weighted Sum:
-IC:            for(int i_c = 0; i_c < ic; i_c++)
+            ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_HEIGHT/TOY)
+            // Output X Dimension
+            ox_loop:
+            for (int o_x = 0; o_x < ox; o_x+=TOX)
             {
-            
-            // Input Dimensions (Feature Maps)
-ID:              for (int i_d = o_d*s-pad, iid = 0; i_d < o_d*s-pad+k; i_d++, iid++)
-              {
-                // Input Y Dimension
-IY:                for (int i_y = o_y*s-pad, iiy = 0; i_y < o_y*s-pad+k; i_y++, iiy++)
+                ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_WIDTH/TOX)
+                // Output Dimensions (Feature Maps)
+                od_loop:
+                for (int o_d = 0; o_d < od; o_d+=TOD)
                 {
-                  // Input X Dimension
-IX:                  for (int i_x = o_x*s-pad, iix = 0; i_x < o_x*s-pad+k; i_x++, iix++)
-                  {
-#pragma HLS PIPELINE
-                    //float ifmap = 0.0;
-                    if((i_x >= 0) && (i_y >= 0) && (i_d >= 0) && (i_x < ix) && (i_y < iy) && (i_d < id)){
-                      //ifmap = mem[input_offset/sizeof(float) +b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x];
-                      output_element += mem[input_offset/sizeof(float) +b_*ic*id*ix*iy+ i_c*id*ix*iy + i_d*ix*iy + i_y*ix + i_x] * //+ num_weights+num_biases+ b_*id*ix*iy + i_d*ix*iy + i_y*ix + i_x]*
-                                      mem[parameters_offset/sizeof(float) + o_c*ic*k*k*k + i_c*k*k*k + iid*k*k + iiy*k + iix];
-                      }
-                  }
+                    ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_DIMS/TOD)
+                    //std::cout << "bmorm[0][0] = " << normBRAM[0][0] << "\n";
+                    //std::cout << "bias[0][0] = "  << biasBRAM[0][0] << "\n";
+                    // Output Channels
+                    oc_loop:
+                    for(int o_c = 0; o_c < oc; o_c+=TCO )
+                    {
+                        ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_CHANNELS/TCO)
+                        // Set bias
+                        read_bias_to_output(outputBRAM,biasBRAM,o_c,bb,od_limit,oy_limit,ox_limit);
+
+                        //PING-PONG RAM applied here
+                        //the time spent on convolution computation is fully converd by the time spent on memory transaction
+                        mem_read_weight(mem, w_offset, weightBRAM_ping, k, oc, ic, o_c, 0);
+                        mem_read_input(mem, i_offset, inputBRAM_ping, ic, id, ix, iy, k, s, bb, o_y, o_x, o_d, o_c, 0, oy_limit, ox_limit, od_limit);
+
+                        //std::cout << "read init"<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
+                        //std::cout << "ic = " << ic << "Tc = " << Tc << "residue" << (ic/Tc)%2 << "\n";
+                        for(int i_c = TCI; i_c < ic; i_c+=TCI )
+                        {
+                            //std::cout << "i_c = " << i_c << "\n";
+                            // unroll II
+                            ADD_PRAGMA(HLS loop_tripcount max = MAX_INPUT_CHANNELS/TCI )
+                            if ((i_c/TCI)%2)
+                            {
+                               // std :: cout << "read ping"<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
+                                conv_compute(outputBRAM,inputBRAM_ping,weightBRAM_ping,k,s,od_limit,oy_limit,ox_limit, o_c,i_c,o_x, o_y, o_d);
+                                mem_read_weight(mem, w_offset, weightBRAM_pong, k,oc,ic, o_c, i_c);
+                                mem_read_input(mem,i_offset,inputBRAM_pong,ic,id,ix,iy,k,s,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit);
+                            }
+                            else
+                            {
+                                //std :: cout << "read pong "<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
+                                conv_compute(outputBRAM,inputBRAM_pong,weightBRAM_pong,k,s,od_limit,oy_limit,ox_limit,o_c,i_c,o_x, o_y, o_d);
+                                mem_read_weight(mem, w_offset, weightBRAM_ping, k,oc,ic, o_c, i_c);
+                                mem_read_input(mem,i_offset,inputBRAM_ping,ic,id,ix,iy,k,s,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit);
+                            }
+                        }
+                        //for the last one to choose between ping and pong
+                        if (((ic/TCI) % 2) || ic<TCI)
+                            conv_compute(outputBRAM,inputBRAM_ping,weightBRAM_ping,k,s,od_limit,oy_limit,ox_limit,o_c,ic-1,o_x, o_y, o_d);
+                        else
+                            conv_compute(outputBRAM,inputBRAM_pong,weightBRAM_pong,k,s,od_limit,oy_limit,ox_limit,o_c,ic-1,o_x, o_y, o_d);
+                        // Write output
+                        mem_write(mem, o_offset, outputBRAM, normBRAM, oc, od, oy, ox, bb, o_c, o_d, o_y, o_x, od_limit, oy_limit, ox_limit, bnorm, relu);
+                    }
                 }
-              }
             }
-            // Write output
-            if(bnorm){
-              //TBC
-              output_element = (output_element-mean)*num + beta;
-            }
-            if(relu) output_element = std::max(0.0f, output_element);
-            mem[output_offset/sizeof(float) + b_*oc*od*ox*oy + o_c*od*ox*oy+ o_d*ox*oy + o_y*ox + o_x] = output_element;
-          }
         }
-      }
     }
-  }
 }
+
+//add padding

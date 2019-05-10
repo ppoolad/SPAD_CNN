@@ -36,8 +36,8 @@ void hw_conv3d_layer(int target,             // control register target
                     const int ix,           // input width
                     const int iy,           // input height
                     const int s,            // stride
-                const int k,            // kernel size
-                const int pad,          // padding
+                    const int k,            // kernel size
+                    const int pad,          // padding
                     const int relu,         //relu enable
                     const int bnorm)        // bnorm enable
 {
@@ -63,22 +63,27 @@ void hw_conv3d_layer(int target,             // control register target
   printf("Memory mapped at address %p.\n", map_base); 
 
   // Write arguments
-  write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_INPUT_OFFSET_DATA, input_offset); 
+  write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_INPUT_OFFSET_DATA, input_offset);
+  write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_PARAM_OFFSET_DATA, parameters_offset);
   write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_OUTPUT_OFFSET_DATA, output_offset);
   write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_B_DATA, b);
   write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_OD_DATA, od);
   write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_OX_DATA, ox);
   write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_OY_DATA, oy);
+  write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_OC_DATA, oc);
+  write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_IC_DATA, ic);
   write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_ID_DATA, id);
   write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_IX_DATA, ix);
   write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_IY_DATA, iy);
   write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_S_DATA, s);
   write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_K_DATA, k);
+  write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_RELU_DATA, relu);
+  write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_BNORM_DATA, bnorm);
 
   char* in_buffer = NULL;
   char* allocated = NULL;
   // Size to DMA in
-  int size = id*od*k*k+od+id*ix*iy*b;
+  int size = oc*ic*id*od*k*k+5*oc+ic*id*ix*iy*b;
   int wait_time = 0;
  
   // Create aligned memory alloc for DMA (should do this during initial read) 
@@ -121,7 +126,7 @@ void hw_conv3d_layer(int target,             // control register target
     dma_from_device_fd  = open((const char *)dma_from_device_0, O_RDWR | O_NONBLOCK);
   else
     dma_from_device_fd  = open((const char *)dma_from_device_1, O_RDWR | O_NONBLOCK);
-  int out_size = od*oy*ox*b;
+  int out_size = oc*od*oy*ox*b;
 
   posix_memalign((void **)&allocated, 4096/*alignment*/, out_size*sizeof(float) + 4096);
   out_buffer = allocated;
