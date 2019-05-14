@@ -1,0 +1,204 @@
+
+
+================================================================
+== Vivado HLS Report for 'read_bias'
+================================================================
+* Date:           Fri May 10 23:10:58 2019
+
+* Version:        2017.2 (Build 1909853 on Thu Jun 15 18:55:24 MDT 2017)
+* Project:        conv3d_proj
+* Solution:       solution1
+* Product family: virtexu
+* Target device:  xcvu095-ffvc1517-2-e
+
+
+================================================================
+== Performance Estimates
+================================================================
++ Timing (ns): 
+    * Summary: 
+    +--------+-------+----------+------------+
+    |  Clock | Target| Estimated| Uncertainty|
+    +--------+-------+----------+------------+
+    |ap_clk  |   4.00|      3.50|        0.50|
+    +--------+-------+----------+------------+
+
++ Latency (clock cycles): 
+    * Summary: 
+    +-----+-----+-----+-----+---------+
+    |  Latency  |  Interval | Pipeline|
+    | min | max | min | max |   Type  |
+    +-----+-----+-----+-----+---------+
+    |    8|   25|    8|   25|   none  |
+    +-----+-----+-----+-----+---------+
+
+    + Detail: 
+        * Instance: 
+        N/A
+
+        * Loop: 
+        +----------+-----+-----+----------+-----------+-----------+--------+----------+
+        |          |  Latency  | Iteration|  Initiation Interval  |  Trip  |          |
+        | Loop Name| min | max |  Latency |  achieved |   target  |  Count | Pipelined|
+        +----------+-----+-----+----------+-----------+-----------+--------+----------+
+        |- Loop 1  |    0|   17|         3|          1|          1| 0 ~ 16 |    yes   |
+        +----------+-----+-----+----------+-----------+-----------+--------+----------+
+
+
+
+================================================================
+== Utilization Estimates
+================================================================
+* Summary: 
++-----------------+---------+-------+---------+--------+
+|       Name      | BRAM_18K| DSP48E|    FF   |   LUT  |
++-----------------+---------+-------+---------+--------+
+|DSP              |        -|      -|        -|       -|
+|Expression       |        -|      -|       98|      59|
+|FIFO             |        -|      -|        -|       -|
+|Instance         |        -|      -|        -|       -|
+|Memory           |        -|      -|        -|       -|
+|Multiplexer      |        -|      -|        -|     107|
+|Register         |        -|      -|       90|       -|
++-----------------+---------+-------+---------+--------+
+|Total            |        0|      0|      188|     166|
++-----------------+---------+-------+---------+--------+
+|Available        |     3456|    768|  1075200|  537600|
++-----------------+---------+-------+---------+--------+
+|Utilization (%)  |        0|      0|    ~0   |   ~0   |
++-----------------+---------+-------+---------+--------+
+
++ Detail: 
+    * Instance: 
+    N/A
+
+    * DSP48: 
+    N/A
+
+    * Memory: 
+    N/A
+
+    * FIFO: 
+    N/A
+
+    * Expression: 
+    +----------------------------------+----------+-------+----+----+------------+------------+
+    |           Variable Name          | Operation| DSP48E| FF | LUT| Bitwidth P0| Bitwidth P1|
+    +----------------------------------+----------+-------+----+----+------------+------------+
+    |i_2_fu_131_p2                     |     +    |      0|  98|  37|          31|           1|
+    |ap_block_pp0_stage0_flag00011001  |    and   |      0|   0|   2|           1|           1|
+    |tmp_fu_126_p2                     |   icmp   |      0|   0|  16|          32|          32|
+    |ap_enable_pp0                     |    xor   |      0|   0|   2|           1|           2|
+    |ap_enable_reg_pp0_iter1           |    xor   |      0|   0|   2|           1|           2|
+    +----------------------------------+----------+-------+----+----+------------+------------+
+    |Total                             |          |      0|  98|  59|          66|          38|
+    +----------------------------------+----------+-------+----+----+------------+------------+
+
+    * Multiplexer: 
+    +----------------------------------+----+-----------+-----+-----------+
+    |               Name               | LUT| Input Size| Bits| Total Bits|
+    +----------------------------------+----+-----------+-----+-----------+
+    |ap_NS_fsm                         |  53|         10|    1|         10|
+    |ap_enable_reg_pp0_iter1           |   9|          2|    1|          2|
+    |ap_enable_reg_pp0_iter2           |   9|          2|    1|          2|
+    |ap_sig_ioackin_m_axi_mem_ARREADY  |   9|          2|    1|          2|
+    |i_reg_100                         |   9|          2|   31|         62|
+    |mem_blk_n_AR                      |   9|          2|    1|          2|
+    |mem_blk_n_R                       |   9|          2|    1|          2|
+    +----------------------------------+----+-----------+-----+-----------+
+    |Total                             | 107|         22|   37|         82|
+    +----------------------------------+----+-----------+-----+-----------+
+
+    * Register: 
+    +------------------------------------------+----+----+-----+-----------+
+    |                   Name                   | FF | LUT| Bits| Const Bits|
+    +------------------------------------------+----+----+-----+-----------+
+    |ap_CS_fsm                                 |   9|   0|    9|          0|
+    |ap_enable_reg_pp0_iter0                   |   1|   0|    1|          0|
+    |ap_enable_reg_pp0_iter1                   |   1|   0|    1|          0|
+    |ap_enable_reg_pp0_iter2                   |   1|   0|    1|          0|
+    |ap_reg_ioackin_m_axi_mem_ARREADY          |   1|   0|    1|          0|
+    |ap_reg_pp0_iter1_biasBRAM_0_addr_reg_182  |   3|   0|    3|          0|
+    |ap_reg_pp0_iter1_biasBRAM_1_addr_reg_187  |   3|   0|    3|          0|
+    |ap_reg_pp0_iter1_tmp_14_reg_178           |   1|   0|    1|          0|
+    |biasBRAM_0_addr_reg_182                   |   3|   0|    3|          0|
+    |biasBRAM_1_addr_reg_187                   |   3|   0|    3|          0|
+    |i_reg_100                                 |  31|   0|   31|          0|
+    |mem_addr_read_reg_192                     |  32|   0|   32|          0|
+    |tmp_14_reg_178                            |   1|   0|    1|          0|
+    +------------------------------------------+----+----+-----+-----------+
+    |Total                                     |  90|   0|   90|          0|
+    +------------------------------------------+----+----+-----+-----------+
+
+
+
+================================================================
+== Interface
+================================================================
+* Summary: 
++---------------------+-----+-----+------------+--------------+--------------+
+|      RTL Ports      | Dir | Bits|  Protocol  | Source Object|    C Type    |
++---------------------+-----+-----+------------+--------------+--------------+
+|ap_clk               |  in |    1| ap_ctrl_hs |   read_bias  | return value |
+|ap_rst               |  in |    1| ap_ctrl_hs |   read_bias  | return value |
+|ap_start             |  in |    1| ap_ctrl_hs |   read_bias  | return value |
+|ap_done              | out |    1| ap_ctrl_hs |   read_bias  | return value |
+|ap_idle              | out |    1| ap_ctrl_hs |   read_bias  | return value |
+|ap_ready             | out |    1| ap_ctrl_hs |   read_bias  | return value |
+|biasBRAM_0_address0  | out |    3|  ap_memory |  biasBRAM_0  |     array    |
+|biasBRAM_0_ce0       | out |    1|  ap_memory |  biasBRAM_0  |     array    |
+|biasBRAM_0_we0       | out |    1|  ap_memory |  biasBRAM_0  |     array    |
+|biasBRAM_0_d0        | out |   32|  ap_memory |  biasBRAM_0  |     array    |
+|biasBRAM_1_address0  | out |    3|  ap_memory |  biasBRAM_1  |     array    |
+|biasBRAM_1_ce0       | out |    1|  ap_memory |  biasBRAM_1  |     array    |
+|biasBRAM_1_we0       | out |    1|  ap_memory |  biasBRAM_1  |     array    |
+|biasBRAM_1_d0        | out |   32|  ap_memory |  biasBRAM_1  |     array    |
+|m_axi_mem_AWVALID    | out |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_AWREADY    |  in |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_AWADDR     | out |   64|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_AWID       | out |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_AWLEN      | out |   32|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_AWSIZE     | out |    3|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_AWBURST    | out |    2|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_AWLOCK     | out |    2|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_AWCACHE    | out |    4|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_AWPROT     | out |    3|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_AWQOS      | out |    4|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_AWREGION   | out |    4|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_AWUSER     | out |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_WVALID     | out |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_WREADY     |  in |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_WDATA      | out |   32|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_WSTRB      | out |    4|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_WLAST      | out |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_WID        | out |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_WUSER      | out |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_ARVALID    | out |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_ARREADY    |  in |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_ARADDR     | out |   64|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_ARID       | out |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_ARLEN      | out |   32|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_ARSIZE     | out |    3|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_ARBURST    | out |    2|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_ARLOCK     | out |    2|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_ARCACHE    | out |    4|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_ARPROT     | out |    3|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_ARQOS      | out |    4|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_ARREGION   | out |    4|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_ARUSER     | out |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_RVALID     |  in |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_RREADY     | out |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_RDATA      |  in |   32|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_RLAST      |  in |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_RID        |  in |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_RUSER      |  in |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_RRESP      |  in |    2|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_BVALID     |  in |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_BREADY     | out |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_BRESP      |  in |    2|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_BID        |  in |    1|    m_axi   |      mem     |    pointer   |
+|m_axi_mem_BUSER      |  in |    1|    m_axi   |      mem     |    pointer   |
+|bias_offset          |  in |   32|   ap_none  |  bias_offset |    scalar    |
+|oc                   |  in |   32|   ap_none  |      oc      |    scalar    |
++---------------------+-----+-----+------------+--------------+--------------+
+
