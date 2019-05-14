@@ -99,6 +99,7 @@ void hw_conv3d_layer(int target,             // control register target
   else
      dma_to_device_fd = open((const char *)dma_to_device_1, O_RDWR | O_NONBLOCK);
 
+  printf("DMA interface opened\n");
   uint32_t addr = input_offset;
   lseek(dma_to_device_fd, addr, SEEK_SET);
   write(dma_to_device_fd, (char*)in_buffer, size*sizeof(float));
