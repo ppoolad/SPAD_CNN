@@ -29,7 +29,7 @@ void write_file (char const *xdma_base, char const* filepath, int addr) {
 	char path[80];
 	sprintf(path, "%s_h2c_0", xdma_base);
 	dma_to_device_fd = open(path, O_RDWR | O_NONBLOCK);
-
+	printf("Openning %s\n", path);
 	//Check if device file opened succesfully
 	if (dma_to_device_fd == -1) {
 		char line[80];
@@ -42,6 +42,7 @@ void write_file (char const *xdma_base, char const* filepath, int addr) {
 
 	//Open file with read access
 	fp = fopen(filepath, "rb");
+	printf("Openning %s\n", filepath);
 	if (!fp) {
 		char line[80];
 		sprintf(line, "Could not open file %s", filepath);
@@ -60,7 +61,9 @@ void write_file (char const *xdma_base, char const* filepath, int addr) {
 	fread(data, 1, len, fp);
 
 	//Send data over PCI to FPGA
+	printf("Sending to PCIe \n\r");
 	lseek(dma_to_device_fd, addr, SEEK_SET);
+	printf("Sending to PCIe.. \n\r");
 	write(dma_to_device_fd, data, len);
 
 	printf("Wrote %d bytes to address %d (0x%x in hex)\n", len, addr, addr);
