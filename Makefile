@@ -34,7 +34,7 @@ hw_unified_fc_conv_layer: conv_test/* util/*
 	g++ -g -DHW_TEST conv_fc_unified_test/*.cpp conv_fc_unified_test/*.c util/*.cpp -I conv_fc_unified_test -I./ -I/opt/Xilinx/Vivado_HLS/2017.2/include -o conv_fc_unified_layer -std=c++11
 
 all_layer: total_vgg_test/* conv3d_test/* conv_trans3d_test/* util/*
-	g++ total_vgg_test/*.cpp conv3d_test/conv3d_layer.cpp conv3d_test/hw_conv3d_layer.c conv_trans3d_test/conv_trans3d_layer.cpp conv_trans3d_test/hw_conv_trans3d_layer.c util/*.cpp  -I all_test -I./ -o all_layer -std=c++11
+	g++ total_vgg_test/*.cpp conv3d_test/conv3d_layer.cpp conv3d_test/conv3d_functions.cpp conv3d_test/hw_conv3d_layer.c conv_trans3d_test/conv_trans3d_layer.cpp conv_trans3d_test/hw_conv_trans3d_layer.c util/*.cpp  -I all_test -I./ -o all_layer -std=c++11
 
 fc_layer: fc_test/* util/*
 	g++ fc_test/*.cpp fc_test/*.c util/*.cpp -I fc_test -I./ -I/opt/Xilinx/Vivado_HLS/2017.2/include -o fc_layer -std=c++11

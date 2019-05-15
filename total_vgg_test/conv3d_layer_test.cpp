@@ -15,15 +15,54 @@
 #include <sstream>
 #include <chrono>
 
-#define HW_CTRL_ADDR 0x00010000
+#define HW_CTRL_ADDR 0x00000000
 
 using namespace std;
 
+
+//#define PRINT
+
+
+int myreadFile(const string fname,
+                      float * fptr,
+                      const int read_alloc,
+                      const int max_alloc){
+
+    int retval = 0;
+    std::cout << "Reading: " << fname << " size: " << read_alloc << std::endl;
+    ifstream in_file(fname.c_str(), ios::in | ios::binary);
+    if (in_file.is_open())
+    {
+        //fptr = new float[max_alloc];
+        if (read_alloc <= max_alloc) {
+            if (!in_file.read(reinterpret_cast<char*>(fptr), sizeof(float)*read_alloc))
+            {
+                std::cout << "Read Error in myRead" << endl;
+                retval = 1;
+            }
+        } else {
+            cerr << "Desired dimensions too large: " << read_alloc << " > " << max_alloc << "\n";
+            retval = 1;
+        }
+        in_file.close();
+    }
+    else
+        cerr << "Couldn't open file: " << fname << endl;
+
+    //if (retval) delete [] fptr;
+    return retval;
+}
+
+
+
 int run_single_test_conv3d(string imageDir, map<string, int> layer_params, float * &dma_input, float * gold_outputs){
 
-    int num_outputs = layer_params["output_dim"]*layer_params["output_width"]*
+
+
+
+    int num_outputs = layer_params["output_channel"]*layer_params["output_dim"]*layer_params["output_width"]*
                       layer_params["output_height"];
-    int num_inputs = layer_params["input_dim"]*layer_params["input_width"]*
+    int num_inputs = layer_params["input_channel"]*layer_params["input_dim"]*layer_params["input_width"]*
                      layer_params["input_height"];
     int num_weights = layer_params["input_channel"]*layer_params["output_channel"]*
                       layer_params["kernel_size"]*layer_params["kernel_size"]*layer_params["kernel_size"];
@@ -53,6 +92,7 @@ int run_single_test_conv3d(string imageDir, map<string, int> layer_params, float
         int s = layer_params["stride"];
         int oc = layer_params["output_channel"];
         int ic = layer_params["input_channel"];
+        int pad = layer_params["pad"];
 
 #ifdef PRINT
         cout << "Begin Test\n"
@@ -70,10 +110,10 @@ int run_single_test_conv3d(string imageDir, map<string, int> layer_params, float
         // Run Accelerator
 #ifdef HW_TEST
         hw_conv3d_layer(HW_CTRL_ADDR, dma_input, sizeof(float)*(num_biases + num_weights + num_bnormparams), 0 ,sizeof(float)*(b*num_inputs+num_biases + num_weights + num_bnormparams),
-                  b, od, ox, oy, oc, ic, id, ix, iy, s, k,1,1,1);
+                  b, od, ox, oy, oc, ic, id, ix, iy, s, k,pad,1,1);
 #else
         conv3d_layer(dma_input, sizeof(float)*(num_biases + num_weights + num_bnormparams), 0 ,sizeof(float)*(b*num_inputs+num_biases + num_weights + num_bnormparams),
-                     b, od, ox, oy, oc, ic, id, ix, iy, s, k,1,1,1);
+                     b, od, ox, oy, oc, ic, id, ix, iy, s, k , pad,1,1);
 #endif
 
     }
