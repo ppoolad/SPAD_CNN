@@ -11,6 +11,12 @@ void read_bias(
         int bias_offset,
         const int oc);
 
+void read_bias_full(
+        float biasBRAM[MAX_OUTPUT_CHANNELS],
+        float * mem,            // global memory pointer
+        int bias_offset,
+        const int oc);
+
 void read_bnorm(
         float normBRAM[MAX_OUTPUT_CHANNELS/TCO][TN],
         float * mem,            // global memory pointer
@@ -32,7 +38,14 @@ void read_bias_to_output(
         const int od_limit,
         const int oy_limit,
         const int ox_limit);
-
+void read_fullbias_to_output(
+        float outputBRAM[TCO][TOD][TOY][TOX],
+        float biasBRAM[MAX_OUTPUT_CHANNELS],
+        int o_c,	//current output dimension index
+        int bb,		//current batch index
+        const int od_limit,
+        const int oy_limit,
+        const int ox_limit);
 
 void mem_read_weight(
         float * mem,            // global memory pointer

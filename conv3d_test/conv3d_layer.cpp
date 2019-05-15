@@ -56,7 +56,7 @@ void conv3d_layer(float * mem,            // global memory pointer
     int num_biases = oc;
     int num_input = b*ic*id*ix*iy;
     int num_output = b*oc*od*ox*oy;
-    int num_bnorm  = oc*4; //mean + var + beta + ghama
+    //int num_bnorm  = oc*4; //mean + var + beta + ghama
     // input weight + bias + input +
     int w_offset = parameters_offset/sizeof(float);
     int b_offset = parameters_offset/sizeof(float) + num_weights;
@@ -67,28 +67,30 @@ void conv3d_layer(float * mem,            // global memory pointer
     //on-chip BRAM buffer/////////////
     //PING-PONG RAM is appied, again for the detail please refer to the
     //FPGA 2015 paper : "Optimizing FPGA-based Accelerator Design for Deep Convolutional Neural Networks"
-    float biasBRAM[MAX_OUTPUT_CHANNELS/TCO][TCO];
-    #pragma HLS array_partition variable=biasBRAM complete dim=2
+    // float biasBRAM[MAX_OUTPUT_CHANNELS/TCO][TCO];
+    // #pragma HLS array_partition variable=biasBRAM complete dim=2
+    float biasBRAM[MAX_OUTPUT_CHANNELS];
+    #pragma HLS array_partition variable=biasBRAM complete
 
     // float normBRAM[MAX_OUTPUT_CHANNELS/TCO][TN];
     // #pragma HLS array_partition variable=normBRAM complete dim=2
-    float normBRAM[MAX_OUTPUT_CHANNELS][4];
+    float normBRAM[MAX_OUTPUT_CHANNELS][4]={0.0f};
     #pragma HLS array_partition variable=normBRAM complete dim=0
     // should not usign ping pong for the weights since the ic and oc are small yet 16 but for bigger layers should change
-    float inputBRAM_ping   [TCI][IND_SIZE][INY_SIZE][INX_SIZE];
-    float weightBRAM_ping  [TCO][TCI][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE];
+    float inputBRAM_ping   [TCI][IND_SIZE][INY_SIZE][INX_SIZE] = {0.0};
+    float weightBRAM_ping  [TCO][TCI][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE]= {0.0};
     #pragma HLS array_partition variable=inputBRAM_ping complete dim=1
     #pragma HLS array_partition variable=weightBRAM_ping complete dim=2
     #pragma HLS array_partition variable=weightBRAM_ping complete dim=1
 
-    float inputBRAM_pong    [TCI][IND_SIZE][INY_SIZE][INX_SIZE];
-    float weightBRAM_pong   [TCO][TCI][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE];
+    float inputBRAM_pong    [TCI][IND_SIZE][INY_SIZE][INX_SIZE]= {0.0};
+    float weightBRAM_pong   [TCO][TCI][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE]= {0.0};
     #pragma HLS array_partition variable=inputBRAM_pong complete dim=1
     #pragma HLS array_partition variable=weightBRAM_pong complete dim=2
     #pragma HLS array_partition variable=weightBRAM_pong complete dim=1
 
 
-    float outputBRAM[TCO][TOD][TOY][TOX];
+    float outputBRAM[TCO][TOD][TOY][TOX]= {0.0};
     #pragma HLS array_partition variable=outputBRAM complete dim=1
     /////////////////////////////////
     const int od_limit = (od >= TOD) ? TOD : od;
@@ -96,10 +98,10 @@ void conv3d_layer(float * mem,            // global memory pointer
     const int ox_limit = (ox >= TOX) ? TOX : ox;
 
     //load biases
-    read_bias(biasBRAM, mem, b_offset,  num_biases);
+    read_bias_full(biasBRAM, mem, b_offset,  num_biases);
 
     //load bnorm parmas
-    read_bnorm_complete(normBRAM, mem, n_offset, num_bnorm);
+    read_bnorm_complete(normBRAM, mem, n_offset, oc);
 
     // Batch
     batch_loop:
@@ -129,7 +131,7 @@ void conv3d_layer(float * mem,            // global memory pointer
                     {
                         ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_CHANNELS/TCO)
                         // Set bias
-                        read_bias_to_output(outputBRAM,biasBRAM,o_c,bb,od_limit,oy_limit,ox_limit);
+                        read_fullbias_to_output(outputBRAM,biasBRAM,o_c,bb,od_limit,oy_limit,ox_limit);
 
                         //PING-PONG RAM applied here
                         //the time spent on convolution computation is fully converd by the time spent on memory transaction

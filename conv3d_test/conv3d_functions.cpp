@@ -19,6 +19,22 @@ void read_bias(
 
 }
 
+
+void read_bias_full(
+        float biasBRAM[MAX_OUTPUT_CHANNELS],
+        float * mem,            // global memory pointer
+        int bias_offset,
+        const int oc)
+{
+    for (int i = 0; i < oc; i++) {
+        ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_CHANNELS)
+        #pragma HLS pipeline II=1
+        biasBRAM[i] = mem[bias_offset+ i];
+        //std::cout << "bias i = " << biasBRAM[i/Tc][i%Tc] << "\n";
+    }
+
+}
+
 void read_bnorm(
         float normBRAM[MAX_OUTPUT_CHANNELS/TCO][TN],
         float * mem,            // global memory pointer
@@ -33,7 +49,7 @@ void read_bnorm(
         int iii = i/TN;
         //std::cout << i << " normBRAM[" << i/TN << "][" << ii << "]\n";
         normBRAM[i/TN][ii] = mem[norm_offset+ (ii%NUM_BNORM_PARAMS)*oc + ii/NUM_BNORM_PARAMS + iii*TN/NUM_BNORM_PARAMS];
-        std::cout << "Tn = " << TN << ">>"  << i << ","<< ii <<  " normBRAM[" << i/TN << "][" << ii << "] = mem[ " << ii%NUM_BNORM_PARAMS << "*oc + " << ii/NUM_BNORM_PARAMS << "] | [" << (ii%NUM_BNORM_PARAMS)*oc + ii/NUM_BNORM_PARAMS + iii*TN/NUM_BNORM_PARAMS <<  "] = " << normBRAM[i/TN][ii] << "\n";
+        //std::cout << "Tn = " << TN << ">>"  << i << ","<< ii <<  " normBRAM[" << i/TN << "][" << ii << "] = mem[ " << ii%NUM_BNORM_PARAMS << "*oc + " << ii/NUM_BNORM_PARAMS << "] | [" << (ii%NUM_BNORM_PARAMS)*oc + ii/NUM_BNORM_PARAMS + iii*TN/NUM_BNORM_PARAMS <<  "] = " << normBRAM[i/TN][ii] << "\n";
     }
 }
 
@@ -43,19 +59,22 @@ void read_bnorm_complete(
         int norm_offset,
         const int on)
 {
-    int oc = on;///NUM_BNORM_PARAMS;
+    //int oc = on;///NUM_BNORM_PARAMS;
     for (int i = 0; i < on; i++) {
         ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_CHANNELS*NUM_BNORM_PARAMS)
         #pragma HLS pipeline II=1
         //int ii = i%TN;
         //int iii = i/TN;
         //std::cout << i << " normBRAM[" << i/TN << "][" << ii << "]\n";
-        normBRAM[i][0] = mem[norm_offset + i*4 + 0];
-        normBRAM[i][1] = mem[norm_offset + i*4 + 1];
-        normBRAM[i][2] = mem[norm_offset + i*4 + 2];
-        normBRAM[i][3] = mem[norm_offset + i*4 + 3];
+        normBRAM[i][0] = mem[norm_offset + 0 + i];
+        normBRAM[i][1] = mem[norm_offset + on*1 + i];
+        normBRAM[i][2] = mem[norm_offset + on*2 + i];
+        normBRAM[i][3] = mem[norm_offset + on*3 + i];
         //normBRAM[i/TN][ii] = mem[norm_offset+ (ii%NUM_BNORM_PARAMS)*oc + ii/NUM_BNORM_PARAMS + iii*TN/NUM_BNORM_PARAMS];
-        //std::cout << "Tn = " << TN << ">>"  << i << ","<< ii <<  " normBRAM[" << i/TN << "][" << ii << "] = mem[ " << ii%NUM_BNORM_PARAMS << "*oc + " << ii/NUM_BNORM_PARAMS << "] | [" << (ii%NUM_BNORM_PARAMS)*oc + ii/NUM_BNORM_PARAMS + iii*TN/NUM_BNORM_PARAMS <<  "] = " << normBRAM[i/TN][ii] << "\n";
+        // std::cout << " normBRAM[" << i<< "][" << 0 << "] = mem[ " << i*4 + 0 << "] =" << mem[norm_offset + i*4 + 0] << "  \n";
+        // std::cout << " normBRAM[" << i<< "][" << 1 << "] = mem[ " << i*4 + 1 << "] =" << mem[norm_offset + i*4 + 1]<< "   \n";
+        // std::cout << " normBRAM[" << i<< "][" << 2 << "] = mem[ " << i*4 + 2 << "] =" << mem[norm_offset + i*4 + 2]<< "   \n";
+        // std::cout << " normBRAM[" << i<< "][" << 3 << "] = mem[ " << i*4 + 3 << "] =" << mem[norm_offset + i*4 + 3]<< "   \n";
     }
 }
 
@@ -78,7 +97,33 @@ void read_bias_to_output(
                 for (int o_cc = 0; o_cc < TCO; o_cc++) {
                     #pragma HLS unroll
                     outputBRAM[o_cc][d][y][x] = biasBRAM[o_c/TCO][o_cc];
-                    std::cout << "output BRAM[" << o_c+o_cc << "] = " << outputBRAM[o_cc][d][y][x] << " comp " << biasBRAM[o_c/TCO][o_cc] << "\n";
+                    //std::cout << "output BRAM[" << o_c+o_cc << "] = " << outputBRAM[o_cc][d][y][x] << " comp " << biasBRAM[o_c/TCO][o_cc] << "\n";
+                }
+            }
+        }
+    }
+}
+
+void read_fullbias_to_output(
+        float outputBRAM[TCO][TOD][TOY][TOX],
+        float biasBRAM[MAX_OUTPUT_CHANNELS],
+        int o_c,	//current output dimension index
+        int bb,		//current batch index
+        const int od_limit,
+        const int oy_limit,
+        const int ox_limit)
+{
+    for (int d = 0; d < od_limit; d++) {
+        ADD_PRAGMA(HLS loop_tripcount max = TOD)
+        for (int y = 0; y < oy_limit; y++) {
+            ADD_PRAGMA(HLS loop_tripcount max = TOY)
+            for (int x = 0; x < ox_limit; x++) {
+                ADD_PRAGMA(HLS loop_tripcount max = TOX)
+                #pragma HLS pipeline II = 1
+                for (int o_cc = 0; o_cc < TCO; o_cc++) {
+                    #pragma HLS unroll
+                    outputBRAM[o_cc][d][y][x] = biasBRAM[o_c+o_cc];
+                    //std::cout << "output BRAM[" << o_c+o_cc << "] = " << outputBRAM[o_cc][d][y][x] << " comp " << biasBRAM[o_c/TCO][o_cc] << "\n";
                 }
             }
         }
@@ -222,13 +267,14 @@ void conv_compute(
                                 #pragma HLS RESOURCE variable=mul2_1 core=FAddSub_nodsp
                                 //#pragma HLS RESOURCE variable=mul2_2 core=FAddSub_nodsp
                                 mul1_1 =    inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][0][l*k*k+i*k+j] +
-                                            inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j] ;
-                                            //inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j] +
-                                            //inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j];
+                                            inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j] +
+                                            inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j] +
+                                            inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j] ;
+                                            //inputBRAM[4][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][4][l*k*k+i*k+j];
                                 //mul1_3 = inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j];
                                 //mul1_4 = inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j];
-                                std::cout << inputBRAM[0][s*d+l][s*y+i][s*x+j] << " * " << weightBRAM[o_cc][0][l*k*k+i*k+j] << " + "
-                                            << inputBRAM[1][s*d+l][s*y+i][s*x+j] << " * " << weightBRAM[o_cc][1][l*k*k+i*k+j] << "\t";
+                                // std::cout << inputBRAM[0][s*d+l][s*y+i][s*x+j] << " * " << weightBRAM[o_cc][0][l*k*k+i*k+j] << " + "
+                                //             << inputBRAM[1][s*d+l][s*y+i][s*x+j] << " * " << weightBRAM[o_cc][1][l*k*k+i*k+j] << "\t";
                                 //mul2_1 = mul1_1 + mul1_2;
                                 //mul2_2 = mul1_3 + mul1_4;
                                 //mul3_1 = mul2_1 + mul2_2;
@@ -236,7 +282,7 @@ void conv_compute(
                                 //float prev = outputBRAM[o_cc][d][y][x];
                                 //std::cout << "writing to [" << o_cc << "][" << d << "][" << y << "][" << x << "]\n";
                                 outputBRAM[o_cc][d][y][x] += mul1_1;
-                                std::cout << "O: " << outputBRAM[o_cc][d][y][x] << "\t";
+                                //std::cout << "O: " << outputBRAM[o_cc][d][y][x] << "\t";
                                 //std::cout << inputBRAM[0][s*d+l][s*y+i][s*x+j] << " x " << weightBRAM[o_cc][0][l*k*k+i*k+j] << " + " << inputBRAM[1][s*d+l][s*y+i][s*x+j] << " x " << weightBRAM[o_cc][1][l*k*k+i*k+j] << " = " << mul1_1 << "   ";
 //                                if (o_cc == 0 && d == 1 && y == 0 && x == 0)
 //                                    std::cout << " in[" << l << "][" << i << "][" << j << "] .. =" << inputBRAM[0][s*d+l][s*y+i][s*x+j] << "x" << weightBRAM[o_cc][0][l*k*k+i*k+j]<< "\n";
@@ -354,7 +400,7 @@ void mem_write_fullnorm(
                         //(output-mean)*gamma/sqrt(var + EPSILON)-beta;
                         //if ((o_cc+o_c)==0)
                         float ratio =  normBRAM[o_c+o_cc][2]/sqrt(normBRAM[o_c+o_cc][1] + EPSILON);
-                        //std::cout << "for outBRAM[ " << o_cc+o_c << "][" << o_d+d << "][" << o_y+y << "][" << o_x+x << "] =" << ratio << "x" << output_element - normBRAM[i0][i1] << " + " << normBRAM[i0][i1+3] << " , mean = " << normBRAM[i0][i1] << " var = " << normBRAM[i0][i1+1] << "gamma = " << normBRAM[i0][i1+2] << " beta = " << normBRAM[i0][i1+3] << "\n";
+                        //std::cout << "for outBRAM[ " << o_cc+o_c << "][" << o_d+d << "][" << o_y+y << "][" << o_x+x << "] =" << ratio << "x" << output_element - normBRAM[o_c+o_cc][0] << " + " << normBRAM[o_c+o_cc][3] << " , mean = " << normBRAM[o_c+o_cc][0] << " var = " << normBRAM[o_c+o_cc][1] << "gamma = " << normBRAM[o_c+o_cc][2] << " beta = " << normBRAM[o_c+o_cc][3] << "\n";
                         output_element = (output_element - normBRAM[o_c+o_cc][0])*ratio+normBRAM[o_c+o_cc][3];
                         //std::cout << "writing " << output_element << "\n";
                     }
