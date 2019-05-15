@@ -17,6 +17,13 @@ void read_bnorm(
         int norm_offset,
         const int oc);
 
+
+void read_bnorm_complete(
+        float normBRAM[MAX_OUTPUT_CHANNELS][4],
+        float * mem,            // global memory pointer
+        int norm_offset,
+        const int oc);
+
 void read_bias_to_output(
         float outputBRAM[TCO][TOD][TOY][TOX],
         float biasBRAM[MAX_OUTPUT_CHANNELS/TCO][TCO],
@@ -93,4 +100,24 @@ void mem_write(
         int bnorm,
         int relu);
 
+
+void mem_write_fullnorm(
+        float * mem,            // global memory pointer
+        int   output_offset,       // offset of inputs
+        float outputBRAM[TCO][TOD][TOY][TOX],
+        float normBRAM  [MAX_OUTPUT_CHANNELS][4],
+        const int oc,
+        const int od,
+        const int oy,
+        const int ox,
+        int bb,
+        int o_c,
+        int o_d,
+        int o_y,
+        int o_x,
+        const int od_limit,
+        const int oy_limit,
+        const int ox_limit,
+        int bnorm,
+        int relu);
 #endif //SPAD_CNN_CONV3D_FUNCTIONS_H

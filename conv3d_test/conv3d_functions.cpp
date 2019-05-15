@@ -31,9 +31,31 @@ void read_bnorm(
         #pragma HLS pipeline II=1
         int ii = i%TN;
         int iii = i/TN;
-        //std::cout << i << " normBRAM[" << i/Tn << "][" << ii << "]\n";
+        //std::cout << i << " normBRAM[" << i/TN << "][" << ii << "]\n";
         normBRAM[i/TN][ii] = mem[norm_offset+ (ii%NUM_BNORM_PARAMS)*oc + ii/NUM_BNORM_PARAMS + iii*TN/NUM_BNORM_PARAMS];
-        //std::cout << "Tn = " << Tn << ">>"  << i << ","<< ii <<  " normBRAM[" << i/Tn << "][" << ii << "] = mem[ " << ii%NUM_BNORM_PARAMS << "*oc + " << ii/NUM_BNORM_PARAMS << "] | [" << (ii%NUM_BNORM_PARAMS)*oc + ii/NUM_BNORM_PARAMS + iii*Tn/NUM_BNORM_PARAMS <<  "] = " << normBRAM[i/Tn][ii] << "\n";
+        std::cout << "Tn = " << TN << ">>"  << i << ","<< ii <<  " normBRAM[" << i/TN << "][" << ii << "] = mem[ " << ii%NUM_BNORM_PARAMS << "*oc + " << ii/NUM_BNORM_PARAMS << "] | [" << (ii%NUM_BNORM_PARAMS)*oc + ii/NUM_BNORM_PARAMS + iii*TN/NUM_BNORM_PARAMS <<  "] = " << normBRAM[i/TN][ii] << "\n";
+    }
+}
+
+void read_bnorm_complete(
+        float normBRAM[MAX_OUTPUT_CHANNELS][4],
+        float * mem,            // global memory pointer
+        int norm_offset,
+        const int on)
+{
+    int oc = on;///NUM_BNORM_PARAMS;
+    for (int i = 0; i < on; i++) {
+        ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_CHANNELS*NUM_BNORM_PARAMS)
+        #pragma HLS pipeline II=1
+        //int ii = i%TN;
+        //int iii = i/TN;
+        //std::cout << i << " normBRAM[" << i/TN << "][" << ii << "]\n";
+        normBRAM[i][0] = mem[norm_offset + i*4 + 0];
+        normBRAM[i][1] = mem[norm_offset + i*4 + 1];
+        normBRAM[i][2] = mem[norm_offset + i*4 + 2];
+        normBRAM[i][3] = mem[norm_offset + i*4 + 3];
+        //normBRAM[i/TN][ii] = mem[norm_offset+ (ii%NUM_BNORM_PARAMS)*oc + ii/NUM_BNORM_PARAMS + iii*TN/NUM_BNORM_PARAMS];
+        //std::cout << "Tn = " << TN << ">>"  << i << ","<< ii <<  " normBRAM[" << i/TN << "][" << ii << "] = mem[ " << ii%NUM_BNORM_PARAMS << "*oc + " << ii/NUM_BNORM_PARAMS << "] | [" << (ii%NUM_BNORM_PARAMS)*oc + ii/NUM_BNORM_PARAMS + iii*TN/NUM_BNORM_PARAMS <<  "] = " << normBRAM[i/TN][ii] << "\n";
     }
 }
 
@@ -56,7 +78,7 @@ void read_bias_to_output(
                 for (int o_cc = 0; o_cc < TCO; o_cc++) {
                     #pragma HLS unroll
                     outputBRAM[o_cc][d][y][x] = biasBRAM[o_c/TCO][o_cc];
-                    //std::cout << "output BRAM[" << o_c+o_cc << "] = " << outputBRAM[o_cc][d][y][x] << " comp " << biasBRAM[o_c/Tc][o_cc] << "\n";
+                    std::cout << "output BRAM[" << o_c+o_cc << "] = " << outputBRAM[o_cc][d][y][x] << " comp " << biasBRAM[o_c/TCO][o_cc] << "\n";
                 }
             }
         }
@@ -200,12 +222,13 @@ void conv_compute(
                                 #pragma HLS RESOURCE variable=mul2_1 core=FAddSub_nodsp
                                 //#pragma HLS RESOURCE variable=mul2_2 core=FAddSub_nodsp
                                 mul1_1 =    inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][0][l*k*k+i*k+j] +
-                                            inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j];
+                                            inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j] ;
                                             //inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j] +
                                             //inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j];
                                 //mul1_3 = inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j];
                                 //mul1_4 = inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j];
-
+                                std::cout << inputBRAM[0][s*d+l][s*y+i][s*x+j] << " * " << weightBRAM[o_cc][0][l*k*k+i*k+j] << " + "
+                                            << inputBRAM[1][s*d+l][s*y+i][s*x+j] << " * " << weightBRAM[o_cc][1][l*k*k+i*k+j] << "\t";
                                 //mul2_1 = mul1_1 + mul1_2;
                                 //mul2_2 = mul1_3 + mul1_4;
                                 //mul3_1 = mul2_1 + mul2_2;
@@ -213,6 +236,8 @@ void conv_compute(
                                 //float prev = outputBRAM[o_cc][d][y][x];
                                 //std::cout << "writing to [" << o_cc << "][" << d << "][" << y << "][" << x << "]\n";
                                 outputBRAM[o_cc][d][y][x] += mul1_1;
+                                std::cout << "O: " << outputBRAM[o_cc][d][y][x] << "\t";
+                                //std::cout << inputBRAM[0][s*d+l][s*y+i][s*x+j] << " x " << weightBRAM[o_cc][0][l*k*k+i*k+j] << " + " << inputBRAM[1][s*d+l][s*y+i][s*x+j] << " x " << weightBRAM[o_cc][1][l*k*k+i*k+j] << " = " << mul1_1 << "   ";
 //                                if (o_cc == 0 && d == 1 && y == 0 && x == 0)
 //                                    std::cout << " in[" << l << "][" << i << "][" << j << "] .. =" << inputBRAM[0][s*d+l][s*y+i][s*x+j] << "x" << weightBRAM[o_cc][0][l*k*k+i*k+j]<< "\n";
 //                                    std::cout << "in 1 =" << inputBRAM[1][s*d+l][s*y+i][s*x+j] << "x" << weightBRAM[o_cc][1][l*k*k+i*k+j] << "\n";
@@ -264,7 +289,7 @@ void mem_write(
                     ADD_PRAGMA(HLS loop_tripcount max = TOX)
                     #pragma HLS pipeline II=1
                     float output_element = outputBRAM[o_cc][d][y][x];
-                    //std::cout << "writing " << output_element << "\n";
+                    // std::cout << "writing " << output_element << "\n";
                     if(bnorm)
                     {
                         int i0 = o_c/TCO;
@@ -274,11 +299,70 @@ void mem_write(
                         float ratio =  normBRAM[i0][i1+2]/sqrt(normBRAM[i0][i1+1] + EPSILON);
                         //std::cout << "for outBRAM[ " << o_cc+o_c << "][" << o_d+d << "][" << o_y+y << "][" << o_x+x << "] =" << ratio << "x" << output_element - normBRAM[i0][i1] << " + " << normBRAM[i0][i1+3] << " , mean = " << normBRAM[i0][i1] << " var = " << normBRAM[i0][i1+1] << "gamma = " << normBRAM[i0][i1+2] << " beta = " << normBRAM[i0][i1+3] << "\n";
                         output_element = (output_element - normBRAM[i0][i1])*ratio+normBRAM[i0][i1+3];
+                        //std::cout << "writing " << output_element << "\n";
                     }
                     //std::cout << "writing after bnorm " << output_element << "\n";
                     if (relu) output_element = std::max(0.0f,output_element);
                     //std::cout << " = " << output_element << "\n";
                     if ((o_c+o_cc) < oc && (o_d+d) < od && (o_y+y) < oy && (o_x+x) < ox)
+                        //printf("O: %f", output_element);
+                        mem[output_offset + bb*oc*od*ox*oy + (o_c+o_cc)*od*ox*oy+ (o_d+d)*ox*oy + (o_y+y)*ox + o_x+x]  = output_element;
+                    //std::cout << " = " << mem[output_offset + 0*oc*od*ox*oy + 0*od*ox*oy+ 1*ox*oy + 0*ox + 2] << "\n";
+                }
+            }
+        }
+    }
+    //if (o_c == 0)
+    //    std::cout << "done writing\n";
+}
+
+void mem_write_fullnorm(
+        float * mem,            // global memory pointer
+        int   output_offset,       // offset of inputs
+        float outputBRAM[TCO][TOD][TOY][TOX],
+        float normBRAM[MAX_OUTPUT_CHANNELS][4],
+        const int oc,
+        const int od,
+        const int oy,
+        const int ox,
+        int bb,
+        int o_c,
+        int o_d,
+        int o_y,
+        int o_x,
+        const int od_limit,
+        const int oy_limit,
+        const int ox_limit,
+        int bnorm,
+        int relu)
+{
+    for (int o_cc=0; o_cc < TCO; o_cc++) {
+        ADD_PRAGMA(HLS loop_tripcount max = TCO)
+        for (int d = 0; d < od_limit; d++) {
+            ADD_PRAGMA(HLS loop_tripcount max = TOD)
+            for (int y = 0; y < oy_limit; y++) {
+                ADD_PRAGMA(HLS loop_tripcount max = TOY)
+                for (int x = 0; x < ox_limit; x++) {
+                    ADD_PRAGMA(HLS loop_tripcount max = TOX)
+                    #pragma HLS pipeline II=1
+                    float output_element = outputBRAM[o_cc][d][y][x];
+                     //std::cout << "writing[ " << o_cc+o_c << ", " << o_d+d << ", "<< o_y + y << ", "<< o_x + x << "]: " << output_element << "\n";
+                    if(bnorm)
+                    {
+                        // int i0 = o_c/TCO;
+                        // int i1 = o_cc*NUM_BNORM_PARAMS;
+                        //(output-mean)*gamma/sqrt(var + EPSILON)-beta;
+                        //if ((o_cc+o_c)==0)
+                        float ratio =  normBRAM[o_c+o_cc][2]/sqrt(normBRAM[o_c+o_cc][1] + EPSILON);
+                        //std::cout << "for outBRAM[ " << o_cc+o_c << "][" << o_d+d << "][" << o_y+y << "][" << o_x+x << "] =" << ratio << "x" << output_element - normBRAM[i0][i1] << " + " << normBRAM[i0][i1+3] << " , mean = " << normBRAM[i0][i1] << " var = " << normBRAM[i0][i1+1] << "gamma = " << normBRAM[i0][i1+2] << " beta = " << normBRAM[i0][i1+3] << "\n";
+                        output_element = (output_element - normBRAM[o_c+o_cc][0])*ratio+normBRAM[o_c+o_cc][3];
+                        //std::cout << "writing " << output_element << "\n";
+                    }
+                    //std::cout << "writing after bnorm " << output_element << "\n";
+                    if (relu) output_element = std::max(0.0f,output_element);
+                    //std::cout << " = " << output_element << "\n";
+                    if ((o_c+o_cc) < oc && (o_d+d) < od && (o_y+y) < oy && (o_x+x) < ox)
+                        //printf("O: %f", output_element);
                         mem[output_offset + bb*oc*od*ox*oy + (o_c+o_cc)*od*ox*oy+ (o_d+d)*ox*oy + (o_y+y)*ox + o_x+x]  = output_element;
                     //std::cout << " = " << mem[output_offset + 0*oc*od*ox*oy + 0*od*ox*oy+ 1*ox*oy + 0*ox + 2] << "\n";
                 }

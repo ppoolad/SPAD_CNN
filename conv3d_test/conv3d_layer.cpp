@@ -70,9 +70,10 @@ void conv3d_layer(float * mem,            // global memory pointer
     float biasBRAM[MAX_OUTPUT_CHANNELS/TCO][TCO];
     #pragma HLS array_partition variable=biasBRAM complete dim=2
 
-    float normBRAM[MAX_OUTPUT_CHANNELS/TCO][TN];
-    #pragma HLS array_partition variable=normBRAM complete dim=2
-
+    // float normBRAM[MAX_OUTPUT_CHANNELS/TCO][TN];
+    // #pragma HLS array_partition variable=normBRAM complete dim=2
+    float normBRAM[MAX_OUTPUT_CHANNELS][4];
+    #pragma HLS array_partition variable=normBRAM complete dim=0
     // should not usign ping pong for the weights since the ic and oc are small yet 16 but for bigger layers should change
     float inputBRAM_ping   [TCI][IND_SIZE][INY_SIZE][INX_SIZE];
     float weightBRAM_ping  [TCO][TCI][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE];
@@ -98,7 +99,7 @@ void conv3d_layer(float * mem,            // global memory pointer
     read_bias(biasBRAM, mem, b_offset,  num_biases);
 
     //load bnorm parmas
-    read_bnorm(normBRAM, mem, n_offset, num_bnorm);
+    read_bnorm_complete(normBRAM, mem, n_offset, num_bnorm);
 
     // Batch
     batch_loop:
@@ -163,7 +164,7 @@ void conv3d_layer(float * mem,            // global memory pointer
                         else
                             conv_compute(outputBRAM,inputBRAM_pong,weightBRAM_pong,k,s,od_limit,oy_limit,ox_limit,o_c,ic-1,o_x, o_y, o_d);
                         // Write output
-                        mem_write(mem, o_offset, outputBRAM, normBRAM, oc, od, oy, ox, bb, o_c, o_d, o_y, o_x, od_limit, oy_limit, ox_limit, bnorm, relu);
+                        mem_write_fullnorm(mem, o_offset, outputBRAM, normBRAM, oc, od, oy, ox, bb, o_c, o_d, o_y, o_x, od_limit, oy_limit, ox_limit, bnorm, relu);
                     }
                 }
             }
