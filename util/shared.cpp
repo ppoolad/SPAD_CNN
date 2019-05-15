@@ -23,7 +23,7 @@
 #  define htols(x)     __bswap_16(x)
 #endif
 
-#define PRINT
+//#define PRINT
 
 using namespace std;
 
@@ -326,18 +326,18 @@ float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *
     for (int j = 0; j < b*num_outputs; j++)
     {
       float err = fabs(outputs[j] - golden_output[i][j]);
-#ifdef PRINT
-      int b1 = batch_layer_params[i]["output_dim"];
-      int w4 = batch_layer_params[i]["output_width"];
-      int h3 = batch_layer_params[i]["output_height"];
-      int c2 = batch_layer_params[i]["output_channel"];
-      if (err > 0.1) {
-          int w4_2 = j%(w4);
-          int h3_2 = (j/w4) % (h3);
-          int c2_2 = (j/(w4*h3)) % c2;
-          std::cout << "output[" << c2_2 << "][" << h3_2 << "][" << w4_2 << "] = "<< outputs[j] << "VS" << golden_output[i][j]<< '\n';
-      }
-#endif
+// #ifdef PRINT
+//       int b1 = batch_layer_params[i]["output_dim"];
+//       int w4 = batch_layer_params[i]["output_width"];
+//       int h3 = batch_layer_params[i]["output_height"];
+//       int c2 = batch_layer_params[i]["output_channel"];
+//       if (err > 0.1) {
+//           int w4_2 = j%(w4);
+//           int h3_2 = (j/w4) % (h3);
+//           int c2_2 = (j/(w4*h3)) % c2;
+//           std::cout << "output[" << c2_2 << "][" << h3_2 << "][" << w4_2 << "] = "<< outputs[j] << "VS" << golden_output[i][j]<< '\n';
+//       }
+// #endif
       
       total += err*err;
       //printf("HW: %.6f GOLD:%.6f\n",fabs(outputs[j]),golden_output[i][j] );

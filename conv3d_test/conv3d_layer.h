@@ -29,7 +29,7 @@
 #define TOY		5
 #define TOX		5
 
-#define TN      8  //Tco*4 // for batch normalization
+#define TN      TCO*4  //Tco*4 // for batch normalization
 
 #define IND_SIZE	TOD+MAX_KERNEL_SIZE-1
 #define INY_SIZE	TOY+MAX_KERNEL_SIZE-1

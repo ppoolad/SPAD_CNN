@@ -187,37 +187,39 @@ void conv_compute(
                                 #pragma HLS dependence variable=weightBRAM inter false
                                 #pragma HLS dependence variable=outputBRAM inter FALSE
                                 float mul1_1;
-                                float mul1_2;
+                                //float mul1_2;
                                 //float mul1_3;
                                 //float mul1_4;
-                                float mul2_1;
+                                //float mul2_1;
                                 //float mul2_2;
-                                float mul3_1;
+                                //float mul3_1;
                                 #pragma HLS RESOURCE variable=mul1_1 core=FMul_meddsp
                                 #pragma HLS RESOURCE variable=mul1_2 core=FMul_meddsp
                                 //#pragma HLS RESOURCE variable=mul1_3 core=FMul_meddsp
                                 //#pragma HLS RESOURCE variable=mul1_4 core=FMul_meddsp
                                 #pragma HLS RESOURCE variable=mul2_1 core=FAddSub_nodsp
                                 //#pragma HLS RESOURCE variable=mul2_2 core=FAddSub_nodsp
-                                mul1_1 = inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][0][l*k*k+i*k+j];
-                                mul1_2 = inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j];
+                                mul1_1 =    inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][0][l*k*k+i*k+j] +
+                                            inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j];
+                                            //inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j] +
+                                            //inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j];
                                 //mul1_3 = inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j];
                                 //mul1_4 = inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j];
 
-                                mul2_1 = mul1_1 + mul1_2;
+                                //mul2_1 = mul1_1 + mul1_2;
                                 //mul2_2 = mul1_3 + mul1_4;
                                 //mul3_1 = mul2_1 + mul2_2;
-                                mul3_1 = mul2_1;
-                                float prev = outputBRAM[o_cc][d][y][x];
+                                //mul3_1 = mul2_1;
+                                //float prev = outputBRAM[o_cc][d][y][x];
                                 //std::cout << "writing to [" << o_cc << "][" << d << "][" << y << "][" << x << "]\n";
-                                outputBRAM[o_cc][d][y][x] += mul3_1;
+                                outputBRAM[o_cc][d][y][x] += mul1_1;
 //                                if (o_cc == 0 && d == 1 && y == 0 && x == 0)
 //                                    std::cout << " in[" << l << "][" << i << "][" << j << "] .. =" << inputBRAM[0][s*d+l][s*y+i][s*x+j] << "x" << weightBRAM[o_cc][0][l*k*k+i*k+j]<< "\n";
 //                                    std::cout << "in 1 =" << inputBRAM[1][s*d+l][s*y+i][s*x+j] << "x" << weightBRAM[o_cc][1][l*k*k+i*k+j] << "\n";
 //                                    std::cout << "in 2 =" <<  inputBRAM[2][s*d+l][s*y+i][s*x+j] << "x" << weightBRAM[o_cc][2][l*k*k+i*k+j] << "\n";
 //                                    std::cout << "in 3 =" <<  inputBRAM[3][s*d+l][s*y+i][s*x+j] << "x" << weightBRAM[o_cc][3][l*k*k+i*k+j] << "\n";
                                 //std::cout << "out[" << o_cc << "][" << d << "][" << y << "][" << x << "] = " << mul1_1 << " + " << mul1_2 << " + " << mul1_3 << " + " << mul1_4 << "\n";
-                                int r = (k-1)/2;
+                                //int r = (k-1)/2;
                                 //if ((o_cc+o_c) == 0 && (o_d+d )== 1 && (o_y+y) == 0 && (o_x + x) == 2){
                                 //std::cout <<"out[" << o_cc + o_c << "][" << o_d + d << "][" << o_y + y << "][" << o_x + x << "] += "
                                 //<< " in[" << i_c+0 << "][" << s*(d+o_d) + l -r << "][" << s*(y+o_y) + i - r  << "][" << s*(x+o_x) + j - r << "] x w[" << o_cc+o_c << "][" << 0 << "][" << l << "][" << i << "][" << j << "] = "
