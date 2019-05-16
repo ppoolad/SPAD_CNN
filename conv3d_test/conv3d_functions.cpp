@@ -130,7 +130,42 @@ void read_fullbias_to_output(
     }
 }
 
+void mem_read_weight_transpose(
+        float * mem,            // global memory pointer
+        int   weight_offset,    // offset of weights
+        float weightBRAM[TCO][TCI][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE],
+        const int k,
+        const int oc,
+        const int ic,
+        int o_c,    //current output channel
+        int i_c	//current input  channel index
+        )
+{
+    //read weight
+    //std::cout << "reading weights[" << o_c << "][" << i_c << "]\n";
+    for (int i = 0; i < k; i++)
+    {
+        for (int j = 0; j < k; j ++)
+        {
+            for(int q = 0; q < k; q++)
+            {
 
+                ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE)
+                for (int o_cc = 0; o_cc < TCO; o_cc++)
+                {
+                    for (int i_cc=0; i_cc < TCI; i_cc++)
+                    {
+                        #pragma HLS pipeline II=1
+                        weightBRAM[o_cc][i_cc][i*k*k + j*k + q] = mem[weight_offset + (o_c+o_cc)*k*k*k + (i_c+i_cc)*oc*k*k*k + (k-1-i)*k*k + (k-1-j)*k + (k-1-q)];
+                        //std::cout<< "o_cc = " << o_cc << " i_cc = " << i_cc <<  " kernel = " << i << "\n";
+                        //std::cout << "reading weight[" << o_c + o_cc << "][" << i_c + i_cc << "][" << i << "] = "
+                        //<< mem[weight_offset + (o_c+o_cc)*ic*k*k*k + (i_c+i_cc)*k*k + i] << "=" << weightBRAM[o_cc][i_cc][i] << "\n";
+                    }
+                }
+            }
+        }
+    }
+}
 void mem_read_weight(
         float * mem,            // global memory pointer
         int   weight_offset,    // offset of weights
@@ -184,37 +219,108 @@ void mem_read_input(
     //read input
     // padding also embedded
     int pad = (k-1)/2;
-    for (int iid = 0; iid < k; iid++) {
+    for (int iid = 0; iid < k + s*od_limit; iid++) {
         ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
-        for (int iiy = 0; iiy < k; iiy++) {
+        for (int iiy = 0; iiy < k + s*oy_limit; iiy++) {
             ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
-            for (int iix = 0; iix < k; iix++) {
+            for (int iix = 0; iix < k + s*ox_limit; iix++) {
                 ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
-                for (int d = 0; d < od_limit; d++) {
-                    ADD_PRAGMA(HLS loop_tripcount max = TOD)
-                    for (int y = 0; y < oy_limit; y++) {
-                        ADD_PRAGMA(HLS loop_tripcount max = TOY)
-                        for (int x = 0; x < ox_limit; x++) {
-                            ADD_PRAGMA(HLS loop_tripcount max = TOX)
+                // for (int d = 0; d < od_limit; d++) {
+                //     ADD_PRAGMA(HLS loop_tripcount max = TOD)
+                //     for (int y = 0; y < oy_limit; y++) {
+                //         ADD_PRAGMA(HLS loop_tripcount max = TOY)
+                //         for (int x = 0; x < ox_limit; x++) {
+                //             ADD_PRAGMA(HLS loop_tripcount max = TOX)
                             for (int i_cc=0; i_cc < TCI; i_cc++) {
                                 #pragma HLS pipeline II=1
-                                int i_x = (o_x+x)*s - pad + iix;
-                                int i_y = (o_y+y)*s - pad + iiy;
-                                int i_d = (o_d+d)*s - pad + iid;
+                                int i_x = (o_x)*s - pad + iix;
+                                int i_y = (o_y)*s - pad + iiy;
+                                int i_d = (o_d)*s - pad + iid;
                                 //reading some more than once
                                 if((i_x >= 0) && (i_y >= 0) && (i_d >= 0) && (i_x < ix) && (i_y < iy) && (i_d < id) && (i_cc+i_c)<ic) //
-                                    inputBRAM[i_cc][s*d+iid][s*y+iiy][s*x+iix] = mem[input_offset+ bb*ic*id*iy*ix + (i_c+i_cc)*id*ix*iy + i_d*ix*iy + i_y*ix + i_x];
+                                    inputBRAM[i_cc][iid][iiy][iix] = mem[input_offset+ bb*ic*id*iy*ix + (i_c+i_cc)*id*ix*iy + i_d*ix*iy + i_y*ix + i_x];
                                 else
-                                    inputBRAM[i_cc][s*d+iid][s*y+iiy][s*x+iix] = 0;
+                                    inputBRAM[i_cc][iid][iiy][iix] = 0;
                                 //std::cout << "pad = " << pad << " o_c = " << o_c << "o_d = " << o_d + d << " o_y= " << o_y +y << "o_x = " << o_x +x  << "\n" ;
                                 //std::cout << "pad = " << pad << " i_c = " << i_c + i_cc << "i_d = " << i_d << " i_y= " << i_y << "i_x = " << i_x  << "\n" ;
                                 //std::cout << "reading input[" << (i_c+i_cc)*id*ix*iy + i_d*ix*iy + i_y*ix + i_x << "] as input [" << i_cc << "][" << s*d+iid << "][" << s*y+iiy << "][" << s*x+iix <<  "] =" << inputBRAM[i_cc][s*d+iid][s*y+iiy][s*x+iix] << "\n";
                             }
-                        }
-                    }
-                }
+                //         }
+                //     }
+                // }
             }
         }
+    }
+}
+
+void mem_read_input_transpose(
+        float * mem,            // global memory pointer
+        int   input_offset,     // offset of inputs
+        float inputBRAM [TCI][IND_SIZE][INY_SIZE][INX_SIZE],
+        const int ic,
+        const int id,
+        const int ix,
+        const int iy,
+        const int k,
+        const int s,
+        int bb,		//current batch index
+        int o_y,	//current output y index
+        int o_x,	//current output x index
+        int o_d,	//current output dimension index
+        int o_c,    //current output channel
+        int i_c,	//current input  channel index
+        const int oy_limit,
+        const int ox_limit,
+        const int od_limit)
+{
+    //read input
+    // padding also embedded
+    int pad = (k)/2;
+    for (int iid = 0; iid < 2*(k + od_limit); iid++) {
+        ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
+        for (int iiy = 0; iiy < 2*(k + oy_limit); iiy++) {
+            ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
+            for (int iix = 0; iix < 2*(k + ox_limit); iix++) {
+                ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
+                // for (int d = 0; d < od_limit; d++) {
+                //     ADD_PRAGMA(HLS loop_tripcount max = TOD)
+                //     for (int y = 0; y < oy_limit; y++) {
+                //         ADD_PRAGMA(HLS loop_tripcount max = TOY)
+                //         for (int x = 0; x < ox_limit; x++) {
+                //             ADD_PRAGMA(HLS loop_tripcount max = TOX)
+                            for (int i_cc=0; i_cc < TCI; i_cc++) {
+                                #pragma HLS pipeline II=1
+                                int i_x = ((o_x) - pad + iix);
+                                int i_y = ((o_y) - pad + iiy);
+                                int i_d = ((o_d) - pad + iid);
+                                //reading some more than once
+                                if((i_x >= 0) && (i_y >= 0) && (i_d >= 0) && (i_x < s*ix) && (i_y < s*iy) && (i_d < s*id) && (i_cc+i_c)<ic){ //padding
+                                 if(((i_x%(s)) == 0) && ((i_y%(s)) == 0) && ((i_d%(s)) == 0)){ //transpose stride
+                                    int ni_x = i_x/s; int ni_y = i_y/s; int ni_d = i_d/s; 
+                                    inputBRAM[i_cc][iid][iiy][iix] = mem[input_offset+ bb*ic*id*iy*ix + (i_c+i_cc)*id*ix*iy + ni_d*ix*iy + ni_y*ix + ni_x];
+                                 }else
+                                 {
+                                      inputBRAM[i_cc][iid][iiy][iix] = 0;
+                                 }
+                                 
+                                }
+                                else
+                                    inputBRAM[i_cc][iid][iiy][iix] = 0;
+
+                                
+                                //std::cout << "pad = " << pad << " o_c = " << o_c << "o_d = " << o_d + d << " o_y= " << o_y +y << "o_x = " << o_x +x  << "\n" ;
+                                //std::cout << "pad = " << pad << " i_c = " << i_c + i_cc << "i_d = " << i_d << " i_y= " << i_y << "i_x = " << i_x  << "\n" ;
+                                //std::cout << "reading input[" << (i_c+i_cc)*id*ix*iy + i_d*ix*iy + i_y*ix + i_x << "] as input [" << i_cc << "][" << s*d+iid << "][" << s*y+iiy << "][" << s*x+iix <<  "] =" << inputBRAM[i_cc][s*d+iid][s*y+iiy][s*x+iix] << "\n";
+                            }
+                //         }
+                //     }
+                // }
+                //std::cout <<  inputBRAM[0][iid][iiy][iix] << '\t';
+                
+            }
+            //std::cout << std::endl;
+        }
+        //std::cout << std::endl;
     }
 }
 
@@ -235,18 +341,19 @@ void conv_compute(
         int o_d)
 {
     //std :: cout << "read "<<  weightBRAM[0][0][0] << " and " << inputBRAM[0][0][0][0] << "\n";
-    for (int l = 0; l < k; l++) {
-        ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
-        for (int i = 0; i < k; i++) {
-            ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
-            for (int j = 0; j < k; j++) {
-                ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
-                for (int d = 0; d < od_limit; d++) {
-                    ADD_PRAGMA(HLS loop_tripcount max = TOD)
-                    for (int y = 0; y < oy_limit; y++) {
-                        ADD_PRAGMA(HLS loop_tripcount max = TOY)
-                        for (int x = 0; x < ox_limit; x++) {
-                            ADD_PRAGMA(HLS loop_tripcount max = TOX)
+    for (int d = 0; d < od_limit; d++) {
+        ADD_PRAGMA(HLS loop_tripcount max = TOD)
+        for (int y = 0; y < oy_limit; y++) {
+            ADD_PRAGMA(HLS loop_tripcount max = TOY)
+            for (int x = 0; x < ox_limit; x++) {
+                ADD_PRAGMA(HLS loop_tripcount max = TOX)
+                for (int l = 0; l < k; l++) {
+                    ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
+                    for (int i = 0; i < k; i++) {
+                        ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
+                        for (int j = 0; j < k; j++) {
+                            ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
+
                             #pragma HLS pipeline II=1
                             for (int o_cc = 0; o_cc < TCO; o_cc++) {
                                 #pragma HLS unroll

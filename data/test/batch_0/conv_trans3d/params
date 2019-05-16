@@ -13,3 +13,4 @@ input_dim 128
 output_width 16
 type Convolution
 kernel_size 6
+trans   1

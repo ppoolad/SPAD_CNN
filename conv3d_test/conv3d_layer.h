@@ -17,7 +17,7 @@
 #define MAX_CONV_INPUT      MAX_INPUT_CHANNELS*MAX_INPUT_DIMS*MAX_INPUT_WIDTH*MAX_INPUT_HEIGHT
 #define MAX_CONV_OUTPUT     MAX_OUTPUT_CHANNELS*MAX_OUTPUT_DIMS*MAX_OUTPUT_WIDTH*MAX_OUTPUT_HEIGHT
 #define MAX_WEIGHT_SIZE     MAX_INPUT_CHANNELS*MAX_OUTPUT_CHANNELS*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE
-
+#define MAX_STRIDE          2
 #define NUM_BNORM_PARAMS    4
 
 //tile for channels  // <!!!>if changing this change Tn
@@ -31,9 +31,9 @@
 
 #define TN      TCO*4  //Tco*4 // for batch normalization
 
-#define IND_SIZE	TOD+MAX_KERNEL_SIZE-1
-#define INY_SIZE	TOY+MAX_KERNEL_SIZE-1
-#define INX_SIZE	TOX+MAX_KERNEL_SIZE-1
+#define IND_SIZE	MAX_STRIDE*(TOD+MAX_KERNEL_SIZE)-1
+#define INY_SIZE	MAX_STRIDE*(TOY+MAX_KERNEL_SIZE)-1
+#define INX_SIZE	MAX_STRIDE*(TOX+MAX_KERNEL_SIZE)-1
 
 #define ADD_PRAGMA_INNER(x) _Pragma (#x)
 #define ADD_PRAGMA(x) ADD_PRAGMA_INNER(x)
@@ -56,7 +56,7 @@ void conv3d_layer(float * mem,            // global memory pointer
                   const int k,            // kernel size
                   const int pad,          // padding
                   const int relu,         //relu enable
-                  const int bnorm);       // batch norm enable
+                  const int bnorm);       // transpose
 void hw_conv3d_layer(int target,             // control register target
                      float * mem,            // global memory pointer
                      int input_offset,       // offset of inputs
@@ -75,5 +75,5 @@ void hw_conv3d_layer(int target,             // control register target
                      const int k,            // kernel size
                      const int pad,          // padding
                      const int relu,         //relu enable
-                     const int bnorm);       // batch norm enable
+                  const int bnorm);       // transpose
 #endif

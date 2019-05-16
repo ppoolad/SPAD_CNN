@@ -16,10 +16,10 @@ conv_layer: conv_test/* util/*
 	g++ conv_test/*.cpp conv_test/*.c util/*.cpp -I conv_test -I./ -I/opt/Xilinx/Vivado_HLS/2017.2/include -o conv_layer -std=c++11
 
 conv3d_layer: conv3d_test/* util/*
-	g++ conv3d_test/*.cpp conv3d_test/*.c util/*.cpp -I conv3d_test -I./ -I/opt/Xilinx/Vivado_HLS/2017.2/include -o conv3d_layer -std=c++11
+	g++ -g  conv3d_test/*.cpp conv3d_test/*.c util/*.cpp -I conv3d_test -I./ -I/opt/Xilinx/Vivado_HLS/2017.2/include -o conv3d_layer -std=c++11
 
 conv_trans3d_layer: conv_trans3d_test/* util/*
-	g++ conv_trans3d_test/*.cpp conv_trans3d_test/*.c util/*.cpp -I conv_trans3d_test -I./ -I/opt/Xilinx/Vivado_HLS/2017.2/include -o conv_trans3d_layer -std=c++11
+	g++ -g conv_trans3d_test/*.cpp conv_trans3d_test/*.c util/*.cpp -I conv_trans3d_test -I./ -I/opt/Xilinx/Vivado_HLS/2017.2/include -o conv_trans3d_layer -std=c++11
 
 hw_conv3d_layer: conv3d_test/* util/*
 	g++ -DHW_TEST conv3d_test/*.cpp conv3d_test/*.c util/*.cpp -I conv3d_test -I./ -I/opt/Xilinx/Vivado_HLS/2017.2/include  -o hw_conv3d_layer -std=c++11

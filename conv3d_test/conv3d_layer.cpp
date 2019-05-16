@@ -24,8 +24,8 @@ void conv3d_layer(float * mem,            // global memory pointer
                   const int s,            // stride
                   const int k,            // kernel size
                   const int pad,          // padding
-                  const int relu,         //relu enable
-                  const int bnorm       // batch norm enable
+                  const int relu,         // relu enable
+                  const int bnorm        // batch norm enable
 )
 
 {
@@ -63,7 +63,9 @@ void conv3d_layer(float * mem,            // global memory pointer
     int n_offset = parameters_offset/sizeof(float) + num_weights + num_biases;
     int i_offset = input_offset/sizeof(float);
     int o_offset = output_offset/sizeof(float);
-
+    int strd = abs(s);
+    int sconv = strd;
+    if(s<0) sconv=1;
     //on-chip BRAM buffer/////////////
     //PING-PONG RAM is appied, again for the detail please refer to the
     //FPGA 2015 paper : "Optimizing FPGA-based Accelerator Design for Deep Convolutional Neural Networks"
@@ -135,9 +137,13 @@ void conv3d_layer(float * mem,            // global memory pointer
 
                         //PING-PONG RAM applied here
                         //the time spent on convolution computation is fully converd by the time spent on memory transaction
-                        mem_read_weight(mem, w_offset, weightBRAM_ping, k, oc, ic, o_c, 0);
-                        mem_read_input(mem, i_offset, inputBRAM_ping, ic, id, ix, iy, k, s, bb, o_y, o_x, o_d, o_c, 0, oy_limit, ox_limit, od_limit);
-
+                        if(s>0){
+                            mem_read_weight(mem, w_offset, weightBRAM_ping, k, oc, ic, o_c, 0);
+                            mem_read_input(mem, i_offset, inputBRAM_ping, ic, id, ix, iy, k, strd, bb, o_y, o_x, o_d, o_c, 0, oy_limit, ox_limit, od_limit);
+                        }else{
+                            mem_read_weight_transpose(mem, w_offset, weightBRAM_ping, k, oc, ic, o_c, 0);
+                            mem_read_input_transpose(mem, i_offset, inputBRAM_ping, ic, id, ix, iy, k, strd, bb, o_y, o_x, o_d, o_c, 0, oy_limit, ox_limit, od_limit);
+                        }
                         //std::cout << "read init"<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
                         //std::cout << "ic = " << ic << "Tc = " << Tc << "residue" << (ic/Tc)%2 << "\n";
                         for(int i_c = TCI; i_c < ic; i_c+=TCI )
@@ -148,23 +154,33 @@ void conv3d_layer(float * mem,            // global memory pointer
                             if ((i_c/TCI)%2)
                             {
                                // std :: cout << "read ping"<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
-                                conv_compute(outputBRAM,inputBRAM_ping,weightBRAM_ping,k,s,od_limit,oy_limit,ox_limit, o_c,i_c,o_x, o_y, o_d);
-                                mem_read_weight(mem, w_offset, weightBRAM_pong, k,oc,ic, o_c, i_c);
-                                mem_read_input(mem,i_offset,inputBRAM_pong,ic,id,ix,iy,k,s,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit);
+                                conv_compute(outputBRAM,inputBRAM_ping,weightBRAM_ping,k,sconv,od_limit,oy_limit,ox_limit, o_c,i_c,o_x, o_y, o_d);
+                                if(s>0){
+                                    mem_read_weight(mem, w_offset, weightBRAM_pong, k,oc,ic, o_c, i_c);
+                                    mem_read_input(mem,i_offset,inputBRAM_pong,ic,id,ix,iy,k,strd,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit);
+                                }else{
+                                    mem_read_weight_transpose(mem, w_offset, weightBRAM_pong, k,oc,ic, o_c, i_c);
+                                    mem_read_input_transpose(mem,i_offset,inputBRAM_pong,ic,id,ix,iy,k,strd,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit); 
+                                }
                             }
                             else
                             {
                                 //std :: cout << "read pong "<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
-                                conv_compute(outputBRAM,inputBRAM_pong,weightBRAM_pong,k,s,od_limit,oy_limit,ox_limit,o_c,i_c,o_x, o_y, o_d);
-                                mem_read_weight(mem, w_offset, weightBRAM_ping, k,oc,ic, o_c, i_c);
-                                mem_read_input(mem,i_offset,inputBRAM_ping,ic,id,ix,iy,k,s,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit);
+                                conv_compute(outputBRAM,inputBRAM_pong,weightBRAM_pong,k,sconv,od_limit,oy_limit,ox_limit,o_c,i_c,o_x, o_y, o_d);
+                                if(s>0){
+                                    mem_read_weight(mem, w_offset, weightBRAM_ping, k,oc,ic, o_c, i_c);
+                                    mem_read_input(mem,i_offset,inputBRAM_ping,ic,id,ix,iy,k,strd,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit);
+                                }else{
+                                    mem_read_weight_transpose(mem, w_offset, weightBRAM_ping, k,oc,ic, o_c, i_c);
+                                    mem_read_input_transpose(mem,i_offset,inputBRAM_ping,ic,id,ix,iy,k,strd,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit);
+                                }
                             }
                         }
                         //for the last one to choose between ping and pong
                         if (((ic/TCI) % 2) || ic<TCI)
-                            conv_compute(outputBRAM,inputBRAM_ping,weightBRAM_ping,k,s,od_limit,oy_limit,ox_limit,o_c,ic-1,o_x, o_y, o_d);
+                            conv_compute(outputBRAM,inputBRAM_ping,weightBRAM_ping,k,sconv,od_limit,oy_limit,ox_limit,o_c,ic-1,o_x, o_y, o_d);
                         else
-                            conv_compute(outputBRAM,inputBRAM_pong,weightBRAM_pong,k,s,od_limit,oy_limit,ox_limit,o_c,ic-1,o_x, o_y, o_d);
+                            conv_compute(outputBRAM,inputBRAM_pong,weightBRAM_pong,k,sconv,od_limit,oy_limit,ox_limit,o_c,ic-1,o_x, o_y, o_d);
                         // Write output
                         mem_write_fullnorm(mem, o_offset, outputBRAM, normBRAM, oc, od, oy, ox, bb, o_c, o_d, o_y, o_x, od_limit, oy_limit, ox_limit, bnorm, relu);
                     }

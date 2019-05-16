@@ -88,6 +88,7 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
     int oc = layer_params["output_channel"];
     int ic = layer_params["input_channel"];
     int pad = layer_params["pad"];
+    //int trans = layer_params["trans"];
     
 #ifdef PRINT
     cout << "Begin Test\n"
@@ -100,6 +101,9 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
        << "Output Dimensions " << b << " x " << oc << " x "<< od << " x " << ox << " x " << oy << endl
        << "Kernel Dimensions " << oc << " x " << ic << " x " << k << " x " << k << endl
        << "Stride Size: " << s << endl;
+
+       if(s<0)
+          cout << "IT IS A TRANSPOSE CONV" << std::endl;
 #endif
 
     // Run Accelerator
@@ -178,7 +182,7 @@ int main(int argc, char** argv)
       }
       ptr += bsize;
       /*reading bnorm params*/
-      if (myreadFile(imageDir_current + "/conv3.4.running_mean", ptr, bsize, 4*MAX_OUTPUT_CHANNELS )) {
+      if (myreadFile(imageDir_current + "/conv3.4.running_mean", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
         std::cout << "Read Error";
         return 1;
       }

@@ -39,7 +39,7 @@ void hw_conv3d_layer(int target,             // control register target
                     const int k,            // kernel size
                     const int pad,          // padding
                     const int relu,         //relu enable
-                    const int bnorm)        // bnorm enable
+                    const int bnorm)       // transpose
 {
   volatile void* map_base;
   const char * pPath = getenv("XDMA");

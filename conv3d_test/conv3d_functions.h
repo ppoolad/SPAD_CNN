@@ -58,7 +58,39 @@ void mem_read_weight(
         int i_c 	//current input  channel index
 );
 
+void mem_read_weight_transpose(
+        float * mem,            // global memory pointer
+        int   weight_offset,    // offset of weights
+        float weightBRAM[TCO][TCI][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE],
+        const int k,
+        const int oc,
+        const int ic,
+        int o_c,    //current output channel
+        int i_c 	//current input  channel index
+);
+
+
 void mem_read_input(
+        float * mem,            // global memory pointer
+        int   input_offset,     // offset of inputs
+        float inputBRAM [TCI][IND_SIZE][INY_SIZE][INX_SIZE],
+        const int ic,
+        const int id,
+        const int ix,
+        const int iy,
+        const int k,
+        const int s,
+        int bb,		//current batch index
+        int o_y,	//current output y index
+        int o_x,	//current output x index
+        int o_d,	//current output dimension index
+        int o_c,    //current output channel
+        int i_c,	//current input  channel index
+        const int oy_limit,
+        const int ox_limit,
+        const int od_limit);
+
+void mem_read_input_transpose(
         float * mem,            // global memory pointer
         int   input_offset,     // offset of inputs
         float inputBRAM [TCI][IND_SIZE][INY_SIZE][INX_SIZE],
