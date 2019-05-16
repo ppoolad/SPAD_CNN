@@ -21,13 +21,13 @@
 #define NUM_BNORM_PARAMS    4
 
 //tile for channels  // <!!!>if changing this change Tn
-#define TCO     4
+#define TCO     8
 // keep this 4 other wise change conv_compute
-#define TCI     4
+#define TCI     8
 //tile for input  dimension
 #define TOD		10
-#define TOY		5
-#define TOX		5
+#define TOY		10
+#define TOX		10
 
 #define TN      TCO*4  //Tco*4 // for batch normalization
 
