@@ -71,7 +71,7 @@ void conv3d_layer(float * mem,            // global memory pointer
     //FPGA 2015 paper : "Optimizing FPGA-based Accelerator Design for Deep Convolutional Neural Networks"
     // float biasBRAM[MAX_OUTPUT_CHANNELS/TCO][TCO];
     // #pragma HLS array_partition variable=biasBRAM complete dim=2
-    float biasBRAM[MAX_OUTPUT_CHANNELS];
+    float biasBRAM[MAX_OUTPUT_CHANNELS] = {0.0};
     #pragma HLS array_partition variable=biasBRAM complete
 
     // float normBRAM[MAX_OUTPUT_CHANNELS/TCO][TN];

@@ -276,11 +276,11 @@ void mem_read_input_transpose(
     //read input
     // padding also embedded
     int pad = (k)/2;
-    for (int iid = 0; iid < 2*(k + od_limit); iid++) {
+    for (int iid = 0; iid < k + s*od_limit; iid++) {
         ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
-        for (int iiy = 0; iiy < 2*(k + oy_limit); iiy++) {
+        for (int iiy = 0; iiy < (k + s*oy_limit); iiy++) {
             ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
-            for (int iix = 0; iix < 2*(k + ox_limit); iix++) {
+            for (int iix = 0; iix < (k + s*ox_limit); iix++) {
                 ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
                 // for (int d = 0; d < od_limit; d++) {
                 //     ADD_PRAGMA(HLS loop_tripcount max = TOD)
