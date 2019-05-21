@@ -3,7 +3,7 @@
 ================================================================
 == Vivado HLS Report for 'mem_read_weight'
 ================================================================
-* Date:           Thu May 16 21:35:12 2019
+* Date:           Tue May 21 19:25:24 2019
 
 * Version:        2017.2 (Build 1909853 on Thu Jun 15 18:55:24 MDT 2017)
 * Project:        conv3d_proj
@@ -73,10 +73,10 @@
     +-----------------------------+----------------------+---------+-------+-----+----+
     |           Instance          |        Module        | BRAM_18K| DSP48E|  FF | LUT|
     +-----------------------------+----------------------+---------+-------+-----+----+
-    |conv3d_layer_mul_jbC_x_U279  |conv3d_layer_mul_jbC  |        0|      4|  166|  49|
-    |conv3d_layer_mul_jbC_x_U280  |conv3d_layer_mul_jbC  |        0|      4|  166|  49|
-    |conv3d_layer_mul_jbC_x_U281  |conv3d_layer_mul_jbC  |        0|      4|  166|  49|
-    |conv3d_layer_mul_jbC_x_U282  |conv3d_layer_mul_jbC  |        0|      4|  166|  49|
+    |conv3d_layer_mul_jbC_x_U298  |conv3d_layer_mul_jbC  |        0|      4|  166|  49|
+    |conv3d_layer_mul_jbC_x_U299  |conv3d_layer_mul_jbC  |        0|      4|  166|  49|
+    |conv3d_layer_mul_jbC_x_U300  |conv3d_layer_mul_jbC  |        0|      4|  166|  49|
+    |conv3d_layer_mul_jbC_x_U301  |conv3d_layer_mul_jbC  |        0|      4|  166|  49|
     +-----------------------------+----------------------+---------+-------+-----+----+
     |Total                        |                      |        0|     16|  664| 196|
     +-----------------------------+----------------------+---------+-------+-----+----+

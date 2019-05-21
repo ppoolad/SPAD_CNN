@@ -28,6 +28,11 @@
 <Interval-max>undef</Interval-max>
 </SummaryOfOverallLatency>
 <SummaryOfLoopLatency>
+<memset_biasBRAM>
+<TripCount>16</TripCount>
+<Latency>15</Latency>
+<IterationLatency>1</IterationLatency>
+</memset_biasBRAM>
 <memset_normBRAM>
 <TripCount>16</TripCount>
 <Latency>79</Latency>
@@ -194,9 +199,9 @@
 <AreaEstimates>
 <Resources>
 <BRAM_18K>1746</BRAM_18K>
-<DSP48E>698</DSP48E>
-<FF>144370</FF>
-<LUT>114456</LUT>
+<DSP48E>710</DSP48E>
+<FF>146044</FF>
+<LUT>119500</LUT>
 </Resources>
 <AvailableResources>
 <BRAM_18K>3456</BRAM_18K>
