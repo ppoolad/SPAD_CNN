@@ -99,7 +99,7 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
        << "Num Biases: " << num_biases << endl 
        << "Input Dimensions " << b << " x " << ic << " x "<< id << " x " << ix << " x " << iy << endl
        << "Output Dimensions " << b << " x " << oc << " x "<< od << " x " << ox << " x " << oy << endl
-       << "Kernel Dimensions " << oc << " x " << ic << " x " << k << " x " << k << endl
+       << "Kernel Dimensions " << oc << " x " << ic << " x " << k << " x " << k << " x " << k <<  endl
        << "Stride Size: " << s << endl;
 
        if(s<0)
