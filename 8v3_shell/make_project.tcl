@@ -1,8 +1,6 @@
 
-set static_dcp [lindex $argv 0]
-set projName [lindex $argv 1]
+set projName [lindex $argv 0]
 set proj 8v3_shell/$projName/mig_shell.xpr
-set modify [lindex $argv 2]
 
 
 
