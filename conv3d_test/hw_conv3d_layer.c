@@ -77,6 +77,7 @@ void hw_conv3d_layer(int target,             // control register target
   write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_IY_DATA, iy);
   write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_S_DATA, s);
   write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_K_DATA, k);
+  write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_PAD_DATA, pad);
   write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_RELU_DATA, relu);
   write_int(map_base, target + XCONV_LAYER_CTRL_BUS_ADDR_BNORM_DATA, bnorm);
 
