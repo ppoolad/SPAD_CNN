@@ -61,7 +61,7 @@ void read_bnorm_complete(
 {
     //int oc = on;///NUM_BNORM_PARAMS;
     for (int i = 0; i < on; i++) {
-        ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_CHANNELS*NUM_BNORM_PARAMS)
+        ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_CHANNELS)
         #pragma HLS pipeline II=1
         //int ii = i%TN;
         //int iii = i/TN;
@@ -122,6 +122,7 @@ void read_fullbias_to_output(
                 #pragma HLS pipeline II = 1
                 for (int o_cc = 0; o_cc < TCO; o_cc++) {
                     #pragma HLS unroll
+                    //if(o_c + o_cc <  )
                     outputBRAM[o_cc][d][y][x] = biasBRAM[o_c+o_cc];
                     //std::cout << "output BRAM[" << o_c+o_cc << "] = " << outputBRAM[o_cc][d][y][x] << " comp " << biasBRAM[o_c/TCO][o_cc] << "\n";
                 }
