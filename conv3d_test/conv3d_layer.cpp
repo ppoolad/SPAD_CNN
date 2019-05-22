@@ -57,7 +57,6 @@ void conv3d_layer(float * mem,            // global memory pointer
     int num_input = b*ic*id*ix*iy;
     int num_output = b*oc*od*ox*oy;
     //int num_bnorm  = oc*4; //mean + var + beta + ghama
-    // input weight + bias + input +
     int w_offset = parameters_offset/sizeof(float);
     int b_offset = parameters_offset/sizeof(float) + num_weights;
     int n_offset = parameters_offset/sizeof(float) + num_weights + num_biases;
@@ -71,7 +70,7 @@ void conv3d_layer(float * mem,            // global memory pointer
     //FPGA 2015 paper : "Optimizing FPGA-based Accelerator Design for Deep Convolutional Neural Networks"
     // float biasBRAM[MAX_OUTPUT_CHANNELS/TCO][TCO];
     // #pragma HLS array_partition variable=biasBRAM complete dim=2
-    float biasBRAM[MAX_OUTPUT_CHANNELS] = {0.0};
+    float biasBRAM[MAX_OUTPUT_CHANNELS] = {0.0f};
     #pragma HLS array_partition variable=biasBRAM complete
 
     // float normBRAM[MAX_OUTPUT_CHANNELS/TCO][TN];
@@ -79,20 +78,20 @@ void conv3d_layer(float * mem,            // global memory pointer
     float normBRAM[MAX_OUTPUT_CHANNELS][4]={0.0f};
     #pragma HLS array_partition variable=normBRAM complete dim=0
     // should not usign ping pong for the weights since the ic and oc are small yet 16 but for bigger layers should change
-    float inputBRAM_ping   [TCI][IND_SIZE][INY_SIZE][INX_SIZE] = {0.0};
-    float weightBRAM_ping  [TCO][TCI][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE]= {0.0};
+    float inputBRAM_ping   [TCI][IND_SIZE][INY_SIZE][INX_SIZE] = {0.0f};
+    float weightBRAM_ping  [TCO][TCI][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE]= {0.0f};
     #pragma HLS array_partition variable=inputBRAM_ping complete dim=1
     #pragma HLS array_partition variable=weightBRAM_ping complete dim=2
     #pragma HLS array_partition variable=weightBRAM_ping complete dim=1
 
-    float inputBRAM_pong    [TCI][IND_SIZE][INY_SIZE][INX_SIZE]= {0.0};
-    float weightBRAM_pong   [TCO][TCI][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE]= {0.0};
+    float inputBRAM_pong    [TCI][IND_SIZE][INY_SIZE][INX_SIZE]= {0.0f};
+    float weightBRAM_pong   [TCO][TCI][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE]= {0.0f};
     #pragma HLS array_partition variable=inputBRAM_pong complete dim=1
     #pragma HLS array_partition variable=weightBRAM_pong complete dim=2
     #pragma HLS array_partition variable=weightBRAM_pong complete dim=1
 
 
-    float outputBRAM[TCO][TOD][TOY][TOX]= {0.0};
+    float outputBRAM[TCO][TOD][TOY][TOX]= {0.0f};
     #pragma HLS array_partition variable=outputBRAM complete dim=1
     /////////////////////////////////
     const int od_limit = (od >= TOD) ? TOD : od;
