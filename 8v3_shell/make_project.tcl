@@ -12,7 +12,7 @@ if {![file exists $proj]} {
     open_bd_design 8v3_shell/$projName/mig_shell.srcs/sources_1/bd/static_region/static_region.bd
     upgrade_ip [get_ips]
     make_wrapper -files [get_files 8v3_shell/$projName/mig_shell.srcs/sources_1/bd/static_region/static_region.bd] -top
-    add_files -norecurse 8v3_shell/$projName/mig_shell.srcs/sources_1/bd/static_region/hdl/static_region.v
+    add_files -norecurse 8v3_shell/mig_shell_ila_proj/mig_shell.srcs/sources_1/bd/static_region/hdl/static_region_wrapper.v
     update_compile_order -fileset sources_1
 
     generate_target {synthesis implementation} [get_files 8v3_shell/$projName/mig_shell.srcs/sources_1/bd/static_region/static_region.bd]
@@ -26,7 +26,7 @@ if {![file exists $proj]} {
     foreach run_name [get_runs *_synth*] {
     wait_on_run ${run_name}
     }
-    synth_design -top static_region -mode out_of_context
+    synth_design -top static_region_wrapper
     #write_checkpoint -force 8v3_shell/$projName.dcp
 
     opt_design -directive Explore
