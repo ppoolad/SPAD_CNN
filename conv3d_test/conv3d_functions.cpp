@@ -220,6 +220,9 @@ void mem_read_input(
     //read input
     // padding also embedded
     int pad = (k)/2;
+    int i_x = (o_x)*s - pad;
+    int i_y = (o_y)*s - pad;
+    int i_d = (o_d)*s - pad;
     for (int iid = 0; iid < k + s*od_limit; iid++) {
         ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
         for (int iiy = 0; iiy < k + s*oy_limit; iiy++) {
@@ -234,12 +237,9 @@ void mem_read_input(
                 //             ADD_PRAGMA(HLS loop_tripcount max = TOX)
                             for (int i_cc=0; i_cc < TCI; i_cc++) {
                                 #pragma HLS pipeline II=1
-                                int i_x = (o_x)*s - pad + iix;
-                                int i_y = (o_y)*s - pad + iiy;
-                                int i_d = (o_d)*s - pad + iid;
                                 //reading some more than once
-                                if((i_x >= 0) && (i_y >= 0) && (i_d >= 0) && (i_x < ix) && (i_y < iy) && (i_d < id) && (i_cc+i_c)<ic) //
-                                    inputBRAM[i_cc][iid][iiy][iix] = mem[input_offset+ bb*ic*id*iy*ix + (i_c+i_cc)*id*ix*iy + i_d*ix*iy + i_y*ix + i_x];
+                                if(((i_x+iix) >= 0) && ((i_y+iiy) >= 0) && ((i_d+iid) >= 0) && ((i_x+iix) < ix) && ((i_y+iiy) < iy) && ((i_d+iid) < id) && (i_cc+i_c)<ic) //
+                                    inputBRAM[i_cc][iid][iiy][iix] = mem[input_offset+ bb*ic*id*iy*ix + (i_c+i_cc)*id*ix*iy + (i_d+iid)*ix*iy + (i_y+iiy)*ix + i_x + iix];
                                 else
                                     inputBRAM[i_cc][iid][iiy][iix] = 0;
                                 //std::cout << "pad = " << pad << " o_c = " << o_c << "o_d = " << o_d + d << " o_y= " << o_y +y << "o_x = " << o_x +x  << "\n" ;
