@@ -369,11 +369,11 @@ void conv_compute(
                                 float mul2_1;
                                 //float mul2_2;
                                 //float mul3_1;
-                                #pragma HLS RESOURCE variable=mul1_1 core=FMul_meddsp
-                                #pragma HLS RESOURCE variable=mul1_2 core=FMul_meddsp
+                                //#pragma HLS RESOURCE variable=mul1_1 core=FMul_meddsp
+                                //#pragma HLS RESOURCE variable=mul1_2 core=FMul_meddsp
                                 //#pragma HLS RESOURCE variable=mul1_3 core=FMul_meddsp
                                 //#pragma HLS RESOURCE variable=mul1_4 core=FMul_meddsp
-                                #pragma HLS RESOURCE variable=mul2_1 core=FAddSub_nodsp
+                                //#pragma HLS RESOURCE variable=mul2_1 core=FAddSub_nodsp
                                 //#pragma HLS RESOURCE variable=mul2_2 core=FAddSub_nodsp
                                 mul1_1 =    inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][0][l*k*k+i*k+j] +
                                             inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j] +
