@@ -109,10 +109,10 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
     // Run Accelerator
     #ifdef HW_TEST
     hw_conv3d_layer(HW_CTRL_ADDR, dma_input, sizeof(float)*(num_biases + num_weights + num_bnormparams), 0 ,sizeof(float)*(b*num_inputs+num_biases + num_weights + num_bnormparams),
-                  b, od, ox, oy, oc, ic, id, ix, iy, s, k,pad,1,1);
+                  b, od, ox, oy, oc, ic, id, ix, iy, s, k,pad,0,0);
     #else
     conv3d_layer(dma_input, sizeof(float)*(num_biases + num_weights + num_bnormparams), 0 ,sizeof(float)*(b*num_inputs+num_biases + num_weights + num_bnormparams),
-               b, od, ox, oy, oc, ic, id, ix, iy, s, k , pad,1,1);
+               b, od, ox, oy, oc, ic, id, ix, iy, s, k , pad,0,0);
     #endif
 
   }
@@ -161,7 +161,7 @@ int main(int argc, char** argv)
         ss << i;
       imageDir = imageRootDir + ss.str() + "/" + layer;
       imageDir_current = imageRootDir + ss.str() + "/" + layer;
-  		int size = batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]+
+  		int size = batch_layer_params[i]["output_channel"]*batch_layer_params[i]["input_channel"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]+
 	               batch_layer_params[i]["output_channel"] + 4*batch_layer_params[i]["output_channel"]+
 	               batch_layer_params[i]["input_channel"]*batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_width"];
 
@@ -219,7 +219,7 @@ int main(int argc, char** argv)
   //}
 
 
-  if(readOutputBatches("/conv30out",imageRootDir, batch_layer_params, numBatches, layer, 1*MAX_CONV_OUTPUT, gold_outputs_vec, CONV3D)) return 1;
+  if(readOutputBatches("/conv30out_raw",imageRootDir, batch_layer_params, numBatches, layer, 1*MAX_CONV_OUTPUT, gold_outputs_vec, CONV3D)) return 1;
   //if(readOutputBatches("/conv00out",imageRootDir, batch_layer_params, numBatches, layer, 1*MAX_CONV_OUTPUT, gold_outputs_vec, CONV3D)) return 1;
 
   auto start = chrono::system_clock::now(); 

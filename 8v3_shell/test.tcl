@@ -12,10 +12,10 @@ update_compile_order -fileset sources_1
 generate_target {synthesis implementation} [get_files 8v3_shell/mig_shell_ila_proj/mig_shell.srcs/sources_1/bd/static_region/static_region.bd]
 export_ip_user_files -of_objects [get_files 8v3_shell/mig_shell_ila_proj/mig_shell.srcs/sources_1/bd/static_region/static_region.bd] -no_script -sync -force -quiet
 create_ip_run [get_files -of_objects [get_fileset sources_1] 8v3_shell/mig_shell_ila_proj/mig_shell.srcs/sources_1/bd/static_region/static_region.bd]
-launch_runs [get_runs *_synth*] -jobs 12
-foreach run_name [get_runs *_synth*] {
-  wait_on_run ${run_name}
-}
+#launch_runs [get_runs *_synth*] -jobs 12
+#foreach run_name [get_runs *_synth*] {
+#  wait_on_run ${run_name}
+#}
 #
 #
 add_files -fileset constrs_1 -norecurse { \

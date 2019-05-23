@@ -3,7 +3,7 @@
 ================================================================
 == Vivado HLS Report for 'conv3d_layer'
 ================================================================
-* Date:           Tue May 21 19:25:41 2019
+* Date:           Thu May 23 16:30:18 2019
 
 * Version:        2017.2 (Build 1909853 on Thu Jun 15 18:55:24 MDT 2017)
 * Project:        conv3d_proj
@@ -39,7 +39,7 @@
         |             Instance             |        Module        | min |   max  | min |   max  |   Type  |
         +----------------------------------+----------------------+-----+--------+-----+--------+---------+
         |grp_conv_compute_fu_8115          |conv_compute          |   30|  729080|   30|  729080|   none  |
-        |grp_read_bnorm_complete_fu_8204   |read_bnorm_complete   |    2|     266|    2|     266|   none  |
+        |grp_read_bnorm_complete_fu_8204   |read_bnorm_complete   |    2|      74|    2|      74|   none  |
         |grp_mem_read_input_trans_fu_8340  |mem_read_input_trans  |   13|    6002|   13|    6002|   none  |
         |grp_mem_write_fullnorm_fu_8375    |mem_write_fullnorm    |   17|    8157|   17|    8157|   none  |
         |grp_mem_read_input_fu_8473        |mem_read_input        |   13|    5866|   13|    5866|   none  |
