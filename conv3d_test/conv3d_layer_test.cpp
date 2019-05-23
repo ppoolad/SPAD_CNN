@@ -109,10 +109,10 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
     // Run Accelerator
     #ifdef HW_TEST
     hw_conv3d_layer(HW_CTRL_ADDR, dma_input, sizeof(float)*(num_biases + num_weights + num_bnormparams), 0 ,sizeof(float)*(b*num_inputs+num_biases + num_weights + num_bnormparams),
-                  b, od, ox, oy, oc, ic, id, ix, iy, s, k,pad,0,0);
+                  b, od, ox, oy, oc, ic, id, ix, iy, s, k,pad,1,1);
     #else
     conv3d_layer(dma_input, sizeof(float)*(num_biases + num_weights + num_bnormparams), 0 ,sizeof(float)*(b*num_inputs+num_biases + num_weights + num_bnormparams),
-               b, od, ox, oy, oc, ic, id, ix, iy, s, k , pad,0,0);
+               b, od, ox, oy, oc, ic, id, ix, iy, s, k , pad,1,1);
     #endif
 
   }
@@ -170,40 +170,40 @@ int main(int argc, char** argv)
       int isize = batch_layer_params[i]["input_channel"]*batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_width"];
       string fname;
       /*Reading weights*/
-      if (myreadFile(imageDir_current + "/conv3.0.weight", ptr, wsize, MAX_WEIGHT_SIZE )) {
+      if (myreadFile(imageDir_current + "/conv3.3.weight", ptr, wsize, MAX_WEIGHT_SIZE )) {
         std::cout << "Read Error";
         return 1;
       }
       ptr += wsize;
       /*Reading Biases*/
-      if (myreadFile(imageDir_current + "/conv3.0.bias", ptr, bsize, MAX_CONV_OUTPUT )) {
+      if (myreadFile(imageDir_current + "/conv3.3.bias", ptr, bsize, MAX_CONV_OUTPUT )) {
         std::cout << "Read Error";
         return 1;
       }
       ptr += bsize;
       /*reading bnorm params*/
-      if (myreadFile(imageDir_current + "/conv3.1.running_mean", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
+      if (myreadFile(imageDir_current + "/conv3.4.running_mean", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
         std::cout << "Read Error";
         return 1;
       }
       ptr += bsize;
-      if (myreadFile(imageDir_current + "/conv3.1.running_var", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
+      if (myreadFile(imageDir_current + "/conv3.4.running_var", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
         std::cout << "Read Error";
         return 1;
       }
       ptr += bsize;
-      if (myreadFile(imageDir_current + "/conv3.1.weight", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
+      if (myreadFile(imageDir_current + "/conv3.4.weight", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
         std::cout << "Read Error";
         return 1;
       }
       ptr += bsize;
-      if (myreadFile(imageDir_current + "/conv3.1.bias", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
+      if (myreadFile(imageDir_current + "/conv3.4.bias", ptr, bsize, MAX_OUTPUT_CHANNELS )) {
         std::cout << "Read Error";
         return 1;
       }
       ptr += bsize;
       /*Reading Inputs*/
-      if (myreadFile(imageDir_current + "/ds3out", ptr, isize, 1*MAX_CONV_INPUT )) {
+      if (myreadFile(imageDir_current + "/conv30out", ptr, isize, 1*MAX_CONV_INPUT )) {
       //if (myreadFile(imageDir_current + "/spadfile", ptr, isize, 1*MAX_CONV_INPUT )) {
               std::cout << "Read Error";
               return 1;
@@ -219,7 +219,7 @@ int main(int argc, char** argv)
   //}
 
 
-  if(readOutputBatches("/conv30out_raw",imageRootDir, batch_layer_params, numBatches, layer, 1*MAX_CONV_OUTPUT, gold_outputs_vec, CONV3D)) return 1;
+  if(readOutputBatches("/conv31out",imageRootDir, batch_layer_params, numBatches, layer, 1*MAX_CONV_OUTPUT, gold_outputs_vec, CONV3D)) return 1;
   //if(readOutputBatches("/conv00out",imageRootDir, batch_layer_params, numBatches, layer, 1*MAX_CONV_OUTPUT, gold_outputs_vec, CONV3D)) return 1;
 
   auto start = chrono::system_clock::now(); 

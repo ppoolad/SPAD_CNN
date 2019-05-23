@@ -180,13 +180,14 @@ void mem_read_weight(
 {
     //read weight
     //std::cout << "reading weights[" << o_c << "][" << i_c << "]\n";
-    for (int i = 0; i < k*k*k; i++)
+
+    for (int o_cc = 0; o_cc < TCO; o_cc++)
     {
-        ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE)
-        for (int o_cc = 0; o_cc < TCO; o_cc++)
+        for (int i_cc=0; i_cc < TCI; i_cc++)
         {
-            for (int i_cc=0; i_cc < TCI; i_cc++)
+            for (int i = 0; i < k*k*k; i++)
             {
+        ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE)
                 #pragma HLS pipeline II=1
                 weightBRAM[o_cc][i_cc][i] = mem[weight_offset + (o_c+o_cc)*ic*k*k*k + (i_c+i_cc)*k*k*k + i];
                 //std::cout<< "o_cc = " << o_cc << " i_cc = " << i_cc <<  " kernel = " << i << "\n";
