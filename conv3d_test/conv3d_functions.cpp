@@ -379,22 +379,22 @@ void conv_compute(
                                             inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j] +
                                             inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j] +
                                             inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j] ;
-                                mul1_2 =    inputBRAM[4][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][4][l*k*k+i*k+j] +
-                                            inputBRAM[5][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][5][l*k*k+i*k+j] +
-                                            inputBRAM[6][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][6][l*k*k+i*k+j] +
-                                            inputBRAM[7][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][7][l*k*k+i*k+j] ;
+                                // mul1_2 =    inputBRAM[4][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][4][l*k*k+i*k+j] +
+                                //             inputBRAM[5][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][5][l*k*k+i*k+j] +
+                                //             inputBRAM[6][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][6][l*k*k+i*k+j] +
+                                //             inputBRAM[7][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][7][l*k*k+i*k+j] ;
                                             //inputBRAM[4][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][4][l*k*k+i*k+j];
                                 //mul1_3 = inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j];
                                 //mul1_4 = inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j];
                                 // std::cout << inputBRAM[0][s*d+l][s*y+i][s*x+j] << " * " << weightBRAM[o_cc][0][l*k*k+i*k+j] << " + "
                                 //             << inputBRAM[1][s*d+l][s*y+i][s*x+j] << " * " << weightBRAM[o_cc][1][l*k*k+i*k+j] << "\t";
-                                mul2_1 = mul1_1 + mul1_2;
+                                // mul2_1 = mul1_1 + mul1_2;
                                 //mul2_2 = mul1_3 + mul1_4;
                                 //mul3_1 = mul2_1 + mul2_2;
                                 //mul3_1 = mul2_1;
                                 //float prev = outputBRAM[o_cc][d][y][x];
                                 //std::cout << "writing to [" << o_cc << "][" << d << "][" << y << "][" << x << "]\n";
-                                outputBRAM[o_cc][d][y][x] += mul2_1;
+                                outputBRAM[o_cc][d][y][x] += mul1_1;
                                 //std::cout << "O: " << outputBRAM[o_cc][d][y][x] << "\t";
                                 //std::cout << inputBRAM[0][s*d+l][s*y+i][s*x+j] << " x " << weightBRAM[o_cc][0][l*k*k+i*k+j] << " + " << inputBRAM[1][s*d+l][s*y+i][s*x+j] << " x " << weightBRAM[o_cc][1][l*k*k+i*k+j] << " = " << mul1_1 << "   ";
 //                                if (o_cc == 0 && d == 1 && y == 0 && x == 0)
