@@ -25,9 +25,9 @@
 // keep this 4 other wise change conv_compute
 #define TCI     8
 //tile for input  dimension
-#define TOD		10
-#define TOY		10
-#define TOX		10
+#define TOD		8
+#define TOY		8
+#define TOX		8
 
 #define TN      TCO*4  //Tco*4 // for batch normalization
 
