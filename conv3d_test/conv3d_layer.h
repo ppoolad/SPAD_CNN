@@ -26,8 +26,8 @@
 #define TCI     4
 //tile for input  dimension
 #define TOD		8
-#define TOY		8
-#define TOX		8
+#define TOY		4
+#define TOX		4
 
 #define TN      TCO*4  //Tco*4 // for batch normalization
 
