@@ -66,8 +66,8 @@ void read_bnorm_complete(
         //int ii = i%TN;
         //int iii = i/TN;
         //std::cout << i << " normBRAM[" << i/TN << "][" << ii << "]\n";
-        normBRAM[i][0] = mem[norm_offset + 0 + i];
-        normBRAM[i][1] = mem[norm_offset + on*1 + i];
+        normBRAM[i][0] = mem[norm_offset + i];
+        normBRAM[i][1] = mem[norm_offset + on + i];
         normBRAM[i][2] = mem[norm_offset + on*2 + i];
         normBRAM[i][3] = mem[norm_offset + on*3 + i];
         //normBRAM[i/TN][ii] = mem[norm_offset+ (ii%NUM_BNORM_PARAMS)*oc + ii/NUM_BNORM_PARAMS + iii*TN/NUM_BNORM_PARAMS];
@@ -359,9 +359,9 @@ void conv_compute(
                             #pragma HLS pipeline II=1
                             for (int o_cc = 0; o_cc < TCO; o_cc++) {
                                 #pragma HLS unroll
-                                #pragma HLS dependence variable=inputBRAM inter false
-                                #pragma HLS dependence variable=weightBRAM inter false
-                                #pragma HLS dependence variable=outputBRAM inter FALSE
+                                //#pragma HLS dependence variable=inputBRAM inter false
+                                //#pragma HLS dependence variable=weightBRAM inter false
+                                //#pragma HLS dependence variable=outputBRAM inter FALSE
                                 float mul1_1;
                                 float mul1_2;
                                 //float mul1_3;
