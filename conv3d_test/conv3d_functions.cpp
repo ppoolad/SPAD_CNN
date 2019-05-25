@@ -361,12 +361,13 @@ void conv_compute(
                                 #pragma HLS unroll
                                 //#pragma HLS dependence variable=inputBRAM inter false
                                 //#pragma HLS dependence variable=weightBRAM inter false
-                                //#pragma HLS dependence variable=outputBRAM inter FALSE
-                                float mul1_1;
-                                float mul1_2;
+                                #pragma HLS dependence variable=outputBRAM inter FALSE
+                                float mul1_1[TCO];
+                                #pragma HLS array_partition variable mul1_1 complete
+                                //float mul1_2;
                                 //float mul1_3;
                                 //float mul1_4;
-                                float mul2_1;
+                                //float mul2_1;
                                 //float mul2_2;
                                 //float mul3_1;
                                 //#pragma HLS RESOURCE variable=mul1_1 core=FMul_meddsp
@@ -375,10 +376,10 @@ void conv_compute(
                                 //#pragma HLS RESOURCE variable=mul1_4 core=FMul_meddsp
                                 //#pragma HLS RESOURCE variable=mul2_1 core=FAddSub_nodsp
                                 //#pragma HLS RESOURCE variable=mul2_2 core=FAddSub_nodsp
-                                mul1_1 =    inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][0][l*k*k+i*k+j] +
-                                            inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j] +
-                                            inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j] +
-                                            inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j] ;
+                                mul1_1[o_cc] =      inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][0][l*k*k+i*k+j] +
+                                                    inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j] +
+                                                    inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j] +
+                                                    inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j] ;
                                 // mul1_2 =    inputBRAM[4][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][4][l*k*k+i*k+j] +
                                 //             inputBRAM[5][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][5][l*k*k+i*k+j] +
                                 //             inputBRAM[6][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][6][l*k*k+i*k+j] +
@@ -394,7 +395,7 @@ void conv_compute(
                                 //mul3_1 = mul2_1;
                                 //float prev = outputBRAM[o_cc][d][y][x];
                                 //std::cout << "writing to [" << o_cc << "][" << d << "][" << y << "][" << x << "]\n";
-                                outputBRAM[o_cc][d][y][x] += mul1_1;
+                                outputBRAM[o_cc][d][y][x] += mul1_1[o_cc];
                                 //std::cout << "O: " << outputBRAM[o_cc][d][y][x] << "\t";
                                 //std::cout << inputBRAM[0][s*d+l][s*y+i][s*x+j] << " x " << weightBRAM[o_cc][0][l*k*k+i*k+j] << " + " << inputBRAM[1][s*d+l][s*y+i][s*x+j] << " x " << weightBRAM[o_cc][1][l*k*k+i*k+j] << " = " << mul1_1 << "   ";
 //                                if (o_cc == 0 && d == 1 && y == 0 && x == 0)
@@ -415,6 +416,33 @@ void conv_compute(
             }
         }
     }
+}
+
+typedef float myDataType;
+static myDataType adder_tree(myDataType window0[TCO])
+{
+#pragma HLS PIPELINE
+	myDataType window1[TCO/2] = {0.0};
+#pragma HLS ARRAY_PARTITION variable=window1 complete
+//#pragma HLS RESOURCE variable=window1 core=FAddSub_nodsp
+	myDataType window2[TCO/4] = {0.0};
+#pragma HLS ARRAY_PARTITION variable=window2 complete
+
+
+	myDataType result = 0.0;
+	L1: for(int x=0; x<TCO/2; x++)
+    {
+    	 window1[x] = window0[2*x] +  window0[1+2*x];
+	}
+	L2: for(int x=0; x<TCO/4; x++)
+    {
+    	 window2[x] = window1[x] +  window1[TCO/4+x];
+
+	}
+
+
+	result = window2[0] + window2[1];
+	return result;
 }
 
 /////// writng memory //////////////////////
