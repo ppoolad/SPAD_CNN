@@ -357,11 +357,11 @@ void conv_compute(
                             ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
 
                             #pragma HLS pipeline II=1
-                            for (int o_cc = 0; o_cc < TCO; o_cc++) {
-                                #pragma HLS unroll
+                            // for (int o_cc = 0; o_cc < TCO; o_cc++) {
+                            //     #pragma HLS unroll
                                 //#pragma HLS dependence variable=inputBRAM inter false
                                 //#pragma HLS dependence variable=weightBRAM inter false
-                                #pragma HLS dependence variable=outputBRAM inter FALSE
+                                //#pragma HLS dependence variable=outputBRAM inter FALSE
                                 float mul1_1[TCO];
                                 #pragma HLS array_partition variable mul1_1 complete
                                 //float mul1_2;
@@ -376,10 +376,45 @@ void conv_compute(
                                 //#pragma HLS RESOURCE variable=mul1_4 core=FMul_meddsp
                                 //#pragma HLS RESOURCE variable=mul2_1 core=FAddSub_nodsp
                                 //#pragma HLS RESOURCE variable=mul2_2 core=FAddSub_nodsp
-                                mul1_1[o_cc] =      inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][0][l*k*k+i*k+j] +
-                                                    inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j] +
-                                                    inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j] +
-                                                    inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j] ;
+                                mul1_1[0] =      inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[0][0][l*k*k+i*k+j] +
+                                                    inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[0][1][l*k*k+i*k+j] +
+                                                    inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[0][2][l*k*k+i*k+j] +
+                                                    inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[0][3][l*k*k+i*k+j] ;
+
+                                mul1_1[1] =      inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[1][0][l*k*k+i*k+j] +
+                                                    inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[1][1][l*k*k+i*k+j] +
+                                                    inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[1][2][l*k*k+i*k+j] +
+                                                    inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[1][3][l*k*k+i*k+j] ;
+
+                                mul1_1[2] =      inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[2][0][l*k*k+i*k+j] +
+                                                    inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[2][1][l*k*k+i*k+j] +
+                                                    inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[2][2][l*k*k+i*k+j] +
+                                                    inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[2][3][l*k*k+i*k+j] ;                                                
+
+                                mul1_1[3] =      inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[3][0][l*k*k+i*k+j] +
+                                                    inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[3][1][l*k*k+i*k+j] +
+                                                    inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[3][2][l*k*k+i*k+j] +
+                                                    inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[3][3][l*k*k+i*k+j] ;
+
+                                mul1_1[4] =      inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[4][0][l*k*k+i*k+j] +
+                                                    inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[4][1][l*k*k+i*k+j] +
+                                                    inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[4][2][l*k*k+i*k+j] +
+                                                    inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[4][3][l*k*k+i*k+j] ;
+
+                                mul1_1[5] =      inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[5][0][l*k*k+i*k+j] +
+                                                    inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[5][1][l*k*k+i*k+j] +
+                                                    inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[5][2][l*k*k+i*k+j] +
+                                                    inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[5][3][l*k*k+i*k+j] ;
+
+                                mul1_1[6] =      inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[6][0][l*k*k+i*k+j] +
+                                                    inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[6][1][l*k*k+i*k+j] +
+                                                    inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[6][2][l*k*k+i*k+j] +
+                                                    inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[6][3][l*k*k+i*k+j] ;
+
+                                 mul1_1[7] =      inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[7][0][l*k*k+i*k+j] +
+                                                    inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[7][1][l*k*k+i*k+j] +
+                                                    inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[7][2][l*k*k+i*k+j] +
+                                                    inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[7][3][l*k*k+i*k+j] ;                                                                                                                                                                                                               
                                 // mul1_2 =    inputBRAM[4][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][4][l*k*k+i*k+j] +
                                 //             inputBRAM[5][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][5][l*k*k+i*k+j] +
                                 //             inputBRAM[6][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][6][l*k*k+i*k+j] +
@@ -395,7 +430,14 @@ void conv_compute(
                                 //mul3_1 = mul2_1;
                                 //float prev = outputBRAM[o_cc][d][y][x];
                                 //std::cout << "writing to [" << o_cc << "][" << d << "][" << y << "][" << x << "]\n";
-                                outputBRAM[o_cc][d][y][x] += mul1_1[o_cc];
+                                outputBRAM[0][d][y][x] += mul1_1[0];
+                                outputBRAM[1][d][y][x] += mul1_1[1];
+                                outputBRAM[2][d][y][x] += mul1_1[2];
+                                outputBRAM[3][d][y][x] += mul1_1[3];
+                                outputBRAM[4][d][y][x] += mul1_1[4];
+                                outputBRAM[5][d][y][x] += mul1_1[5];
+                                outputBRAM[6][d][y][x] += mul1_1[6];
+                                outputBRAM[7][d][y][x] += mul1_1[7];
                                 //std::cout << "O: " << outputBRAM[o_cc][d][y][x] << "\t";
                                 //std::cout << inputBRAM[0][s*d+l][s*y+i][s*x+j] << " x " << weightBRAM[o_cc][0][l*k*k+i*k+j] << " + " << inputBRAM[1][s*d+l][s*y+i][s*x+j] << " x " << weightBRAM[o_cc][1][l*k*k+i*k+j] << " = " << mul1_1 << "   ";
 //                                if (o_cc == 0 && d == 1 && y == 0 && x == 0)
@@ -409,7 +451,7 @@ void conv_compute(
                                 //std::cout <<"out[" << o_cc + o_c << "][" << o_d + d << "][" << o_y + y << "][" << o_x + x << "] += "
                                 //<< " in[" << i_c+0 << "][" << s*(d+o_d) + l -r << "][" << s*(y+o_y) + i - r  << "][" << s*(x+o_x) + j - r << "] x w[" << o_cc+o_c << "][" << 0 << "][" << l << "][" << i << "][" << j << "] = "
                                 //<< inputBRAM[0][s*d+l][s*y+i][s*x+j] << "x" << weightBRAM[o_cc][0][l*k*k+i*k+j] << "=" << mul1_1 << "+" << mul1_2 << "+" << mul1_3 << "+" << mul1_4 << " = " << outputBRAM[o_cc][d][y][x] - prev <<" = +" << outputBRAM[o_cc][d][y][x] << "\n";}
-                            }
+                            //}
                         }
                     }
                 }
