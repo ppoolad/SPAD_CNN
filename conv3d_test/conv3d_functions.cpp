@@ -588,11 +588,12 @@ void mem_write_fullnorm(
                         //std::cout << "writing " << output_element << "\n";
                     }
                     //std::cout << "writing after bnorm " << output_element << "\n";
-                    if (relu) output_element = std::max(0.0f,output_element);
+                    if (relu){ output_element = std::max(0.0f,output_element);}
                     //std::cout << " = " << output_element << "\n";
-                    if ((o_c+o_cc) < oc && (o_d+d) < od && (o_y+y) < oy && (o_x+x) < ox)
+                    if (((o_c+o_cc) < oc) && ((o_d+d) < od) && ((o_y+y) < oy) && ((o_x+x) < ox)){
                         //printf("O: %f", output_element);
                         mem[output_offset + bb*oc*od*ox*oy + (o_c+o_cc)*od*ox*oy+ (o_d+d)*ox*oy + (o_y+y)*ox + o_x+x]  = output_element;
+                    }
                     //std::cout << " = " << mem[output_offset + 0*oc*od*ox*oy + 0*od*ox*oy+ 1*ox*oy + 0*ox + 2] << "\n";
                 }
             }

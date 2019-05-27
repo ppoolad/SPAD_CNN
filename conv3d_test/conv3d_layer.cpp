@@ -47,9 +47,9 @@ void conv3d_layer(float * mem,            // global memory pointer
 #pragma HLS INTERFACE s_axilite port=pad bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=relu bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=bnorm bundle=CTRL_BUS
-#pragma HLS INTERFACE s_axilite port=input_offset
-#pragma HLS INTERFACE s_axilite port=parameters_offset
-#pragma HLS INTERFACE s_axilite port=output_offset
+#pragma HLS INTERFACE s_axilite port=input_offset bundle=CTRL_BUS
+#pragma HLS INTERFACE s_axilite port=parameters_offset bundle=CTRL_BUS
+#pragma HLS INTERFACE s_axilite port=output_offset bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=return bundle=CTRL_BUS
 
     int num_weights = ic*oc*k*k*k;
@@ -136,13 +136,13 @@ void conv3d_layer(float * mem,            // global memory pointer
 
                         //PING-PONG RAM applied here
                         //the time spent on convolution computation is fully converd by the time spent on memory transaction
-                        if(s>0){
+                        // if(s>0){
                             mem_read_weight(mem, w_offset, weightBRAM_ping, k, oc, ic, o_c, 0);
                             mem_read_input(mem, i_offset, inputBRAM_ping, ic, id, ix, iy, k, strd, bb, o_y, o_x, o_d, o_c, 0, oy_limit, ox_limit, od_limit);
-                        }else{
-                            mem_read_weight_transpose(mem, w_offset, weightBRAM_ping, k, oc, ic, o_c, 0);
-                            mem_read_input_transpose(mem, i_offset, inputBRAM_ping, ic, id, ix, iy, k, strd, bb, o_y, o_x, o_d, o_c, 0, oy_limit, ox_limit, od_limit);
-                        }
+                        // }else{
+                        //     mem_read_weight_transpose(mem, w_offset, weightBRAM_ping, k, oc, ic, o_c, 0);
+                        //     mem_read_input_transpose(mem, i_offset, inputBRAM_ping, ic, id, ix, iy, k, strd, bb, o_y, o_x, o_d, o_c, 0, oy_limit, ox_limit, od_limit);
+                        // }
                         //std::cout << "read init"<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
                         //std::cout << "ic = " << ic << "Tc = " << Tc << "residue" << (ic/Tc)%2 << "\n";
                         for(int i_c = TCI; i_c < ic; i_c+=TCI )
@@ -154,25 +154,25 @@ void conv3d_layer(float * mem,            // global memory pointer
                             {
                                // std :: cout << "read ping"<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
                                 conv_compute(outputBRAM,inputBRAM_ping,weightBRAM_ping,k,sconv,od_limit,oy_limit,ox_limit, o_c,i_c,o_x, o_y, o_d);
-                                if(s>0){
+                                // if(s>0){
                                     mem_read_weight(mem, w_offset, weightBRAM_pong, k,oc,ic, o_c, i_c);
                                     mem_read_input(mem,i_offset,inputBRAM_pong,ic,id,ix,iy,k,strd,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit);
-                                }else{
-                                    mem_read_weight_transpose(mem, w_offset, weightBRAM_pong, k,oc,ic, o_c, i_c);
-                                    mem_read_input_transpose(mem,i_offset,inputBRAM_pong,ic,id,ix,iy,k,strd,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit); 
-                                }
+                                // }else{
+                                //     mem_read_weight_transpose(mem, w_offset, weightBRAM_pong, k,oc,ic, o_c, i_c);
+                                //     mem_read_input_transpose(mem,i_offset,inputBRAM_pong,ic,id,ix,iy,k,strd,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit); 
+                                // }
                             }
                             else
                             {
                                 //std :: cout << "read pong "<<  weightBRAM_ping[0][0][0] << " and " << inputBRAM_ping[0][0][0][0] << "\n";
                                 conv_compute(outputBRAM,inputBRAM_pong,weightBRAM_pong,k,sconv,od_limit,oy_limit,ox_limit,o_c,i_c,o_x, o_y, o_d);
-                                if(s>0){
+                                // if(s>0){
                                     mem_read_weight(mem, w_offset, weightBRAM_ping, k,oc,ic, o_c, i_c);
                                     mem_read_input(mem,i_offset,inputBRAM_ping,ic,id,ix,iy,k,strd,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit);
-                                }else{
-                                    mem_read_weight_transpose(mem, w_offset, weightBRAM_ping, k,oc,ic, o_c, i_c);
-                                    mem_read_input_transpose(mem,i_offset,inputBRAM_ping,ic,id,ix,iy,k,strd,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit);
-                                }
+                                // }else{
+                                //     mem_read_weight_transpose(mem, w_offset, weightBRAM_ping, k,oc,ic, o_c, i_c);
+                                //     mem_read_input_transpose(mem,i_offset,inputBRAM_ping,ic,id,ix,iy,k,strd,bb,o_y,o_x,o_d,o_c,i_c,oy_limit,ox_limit,od_limit);
+                                // }
                             }
                         }
                         //for the last one to choose between ping and pong
