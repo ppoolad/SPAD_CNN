@@ -302,8 +302,8 @@ float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *
         num_bnormpars = batch_layer_params[i]["output_channel"]*4;
     	num_weights = batch_layer_params[i]["input_channel"]*batch_layer_params[i]["output_channel"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
     	num_outputs = batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*batch_layer_params[i]["output_height"]*batch_layer_params[i]["output_channel"];
-    	totalNumOutputs += num_weights +num_biases+num_bnormpars+num_inputs+  b*num_outputs;
-    	outputs = mem[i];// + b*num_inputs+num_biases+num_weights+num_bnormpars;
+    	totalNumOutputs += b*num_outputs;
+    	outputs = mem[i] + b*num_inputs+num_biases+num_weights+num_bnormpars;
     }
     else if(layerType == FC){
     	num_inputs = batch_layer_params[i]["input_dim"];
@@ -349,7 +349,7 @@ float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *
     string imageDir = imageRootDir + ss.str() + "/" + layer + "/dma_out"; // not for test "dma_out"
     char * buffer = (char *)outputs;
     ofstream myFile(imageDir.c_str(), ios::out | ios::binary);
-    myFile.write(buffer, totalNumOutputs*sizeof(float));    
+    myFile.write(buffer, b*num_outputs*sizeof(float));    
     myFile.close();
   }
     return total/(totalNumOutputs);
