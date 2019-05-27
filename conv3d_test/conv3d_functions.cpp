@@ -362,7 +362,7 @@ void conv_compute(
                                 #pragma HLS dependence variable=inputBRAM inter false
                                 #pragma HLS dependence variable=weightBRAM inter false
                                 #pragma HLS dependence variable=outputBRAM inter FALSE
-                                float mul1_1[TCO];
+                                float mul1_1[TCO] = {0.0f};
                                 #pragma HLS array_partition variable mul1_1 complete
                                 //float mul1_2;
                                 //float mul1_3;
