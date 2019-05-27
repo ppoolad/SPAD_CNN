@@ -141,6 +141,7 @@ void hw_conv3d_layer(int target,             // control register target
   write_ptr = fopen("test.bin","wb");  // w for write, b for binary
 
   fwrite(out_buffer,sizeof(float),out_size,write_ptr); // write 10 bytes from our buffer
+  fclose( write_ptr);
 
   // copy results to result buffer
   memcpy((void*)(mem+size), out_buffer, out_size*sizeof(float));
