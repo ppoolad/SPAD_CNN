@@ -67,8 +67,20 @@ void read_bnorm_complete(
         //int iii = i/TN;
         //std::cout << i << " normBRAM[" << i/TN << "][" << ii << "]\n";
         normBRAM[i][0] = mem[norm_offset + i];
+    }
+    for (int i = 0; i < on; i++) {
+        ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_CHANNELS)
+        #pragma HLS pipeline II=1
         normBRAM[i][1] = mem[norm_offset + on + i];
+    }
+    for (int i = 0; i < on; i++) {
+        ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_CHANNELS)
+        #pragma HLS pipeline II=1
         normBRAM[i][2] = mem[norm_offset + on*2 + i];
+    }
+    for (int i = 0; i < on; i++) {
+        ADD_PRAGMA(HLS loop_tripcount max = MAX_OUTPUT_CHANNELS)
+        #pragma HLS pipeline II=1
         normBRAM[i][3] = mem[norm_offset + on*3 + i];
         //normBRAM[i/TN][ii] = mem[norm_offset+ (ii%NUM_BNORM_PARAMS)*oc + ii/NUM_BNORM_PARAMS + iii*TN/NUM_BNORM_PARAMS];
         // std::cout << " normBRAM[" << i<< "][" << 0 << "] = mem[ " << i*4 + 0 << "] =" << mem[norm_offset + i*4 + 0] << "  \n";
@@ -83,9 +95,9 @@ void read_bias_to_output(
         float biasBRAM[MAX_OUTPUT_CHANNELS/TCO][TCO],
         int o_c,	//current output dimension index
         int bb,		//current batch index
-        const int od_limit,
-        const int oy_limit,
-        const int ox_limit)
+        int od_limit,
+        int oy_limit,
+        int ox_limit)
 {
     for (int d = 0; d < od_limit; d++) {
         ADD_PRAGMA(HLS loop_tripcount max = TOD)
@@ -109,9 +121,9 @@ void read_fullbias_to_output(
         float biasBRAM[MAX_OUTPUT_CHANNELS],
         int o_c,	//current output dimension index
         int bb,		//current batch index
-        const int od_limit,
-        const int oy_limit,
-        const int ox_limit)
+        int od_limit,
+        int oy_limit,
+        int ox_limit)
 {
     for (int d = 0; d < od_limit; d++) {
         ADD_PRAGMA(HLS loop_tripcount max = TOD)
@@ -214,9 +226,9 @@ void mem_read_input(
         int o_d,	//current output dimension index
         int o_c,    //current output channel
         int i_c,	//current input  channel index
-        const int oy_limit,
-        const int ox_limit,
-        const int od_limit)
+        int oy_limit,
+        int ox_limit,
+        int od_limit)
 {
     //read input
     // padding also embedded
@@ -271,9 +283,9 @@ void mem_read_input_transpose(
         int o_d,	//current output dimension index
         int o_c,    //current output channel
         int i_c,	//current input  channel index
-        const int oy_limit,
-        const int ox_limit,
-        const int od_limit)
+        int oy_limit,
+        int ox_limit,
+        int od_limit)
 {
     //read input
     // padding also embedded
@@ -333,9 +345,9 @@ void conv_compute(
         float weightBRAM[TCO][TCI][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE],
         const int k,
         const int s,
-        const int od_limit,
-        const int oy_limit,
-        const int ox_limit,
+        int od_limit,
+        int oy_limit,
+        int ox_limit,
         int o_c, //for test
         int i_c,
         int o_x,
@@ -362,24 +374,29 @@ void conv_compute(
                                 #pragma HLS dependence variable=inputBRAM inter false
                                 #pragma HLS dependence variable=weightBRAM inter false
                                 #pragma HLS dependence variable=outputBRAM inter FALSE
-                                float mul1_1[TCO] = {0.0f};
+                                float mul1_1 = 0;
                                 #pragma HLS array_partition variable mul1_1 complete
-                                //float mul1_2;
-                                //float mul1_3;
-                                //float mul1_4;
-                                //float mul2_1;
-                                //float mul2_2;
-                                //float mul3_1;
+                                float mul1_2 = 0;
+                                float mul1_3 = 0;
+                                float mul1_4 = 0;
+                                float mul2_1 = 0;
+                                float mul2_2 = 0;
+                                float mul3_1 = 0;
                                 //#pragma HLS RESOURCE variable=mul1_1 core=FMul_meddsp
                                 //#pragma HLS RESOURCE variable=mul1_2 core=FMul_meddsp
                                 //#pragma HLS RESOURCE variable=mul1_3 core=FMul_meddsp
                                 //#pragma HLS RESOURCE variable=mul1_4 core=FMul_meddsp
                                 //#pragma HLS RESOURCE variable=mul2_1 core=FAddSub_nodsp
                                 //#pragma HLS RESOURCE variable=mul2_2 core=FAddSub_nodsp
-                                mul1_1[o_cc] =      inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][0][l*k*k+i*k+j] +
-                                                    inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j] +
-                                                    inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j] +
-                                                    inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j] ;
+                                mul1_1 =            inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][0][l*k*k+i*k+j] ;
+                                mul1_2 =            inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j] ;
+                                mul1_3 =            inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j] ;
+                                mul1_4 =            inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j] ;
+
+                                mul2_1 = mul1_1 + mul1_2;
+                                mul2_2 = mul1_3 + mul1_4;
+                                mul3_1 = mul2_1 + mul2_2;
+
 
                                 // mul1_1[1] =      inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[1][0][l*k*k+i*k+j] +
                                 //                     inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[1][1][l*k*k+i*k+j] +
@@ -430,7 +447,7 @@ void conv_compute(
                                 //mul3_1 = mul2_1;
                                 //float prev = outputBRAM[o_cc][d][y][x];
                                 //std::cout << "writing to [" << o_cc << "][" << d << "][" << y << "][" << x << "]\n";
-                                outputBRAM[o_cc][d][y][x] += mul1_1[o_cc];
+                                outputBRAM[o_cc][d][y][x] += mul3_1;
                                 // outputBRAM[1][d][y][x] += mul1_1[1];
                                 // outputBRAM[2][d][y][x] += mul1_1[2];
                                 // outputBRAM[3][d][y][x] += mul1_1[3];
@@ -502,9 +519,9 @@ void mem_write(
         int o_d,
         int o_y,
         int o_x,
-        const int od_limit,
-        const int oy_limit,
-        const int ox_limit,
+        int od_limit,
+        int oy_limit,
+        int ox_limit,
         int bnorm,
         int relu)
 {
@@ -559,9 +576,9 @@ void mem_write_fullnorm(
         int o_d,
         int o_y,
         int o_x,
-        const int od_limit,
-        const int oy_limit,
-        const int ox_limit,
+        int od_limit,
+        int oy_limit,
+        int ox_limit,
         int bnorm,
         int relu)
 {
@@ -576,19 +593,16 @@ void mem_write_fullnorm(
                     #pragma HLS pipeline II=1
                     float output_element = outputBRAM[o_cc][d][y][x];
                      //std::cout << "writing[ " << o_cc+o_c << ", " << o_d+d << ", "<< o_y + y << ", "<< o_x + x << "]: " << output_element << "\n";
-                    if(bnorm)
+                    if(bnorm==1)
                     {
-                        // int i0 = o_c/TCO;
-                        // int i1 = o_cc*NUM_BNORM_PARAMS;
-                        //(output-mean)*gamma/sqrt(var + EPSILON)-beta;
-                        //if ((o_cc+o_c)==0)
+
                         float ratio =  normBRAM[o_c+o_cc][2]/sqrt(normBRAM[o_c+o_cc][1] + EPSILON);
                         //std::cout << "for outBRAM[ " << o_cc+o_c << "][" << o_d+d << "][" << o_y+y << "][" << o_x+x << "] =" << ratio << "x" << output_element - normBRAM[o_c+o_cc][0] << " + " << normBRAM[o_c+o_cc][3] << " , mean = " << normBRAM[o_c+o_cc][0] << " var = " << normBRAM[o_c+o_cc][1] << "gamma = " << normBRAM[o_c+o_cc][2] << " beta = " << normBRAM[o_c+o_cc][3] << "\n";
                         output_element = (output_element - normBRAM[o_c+o_cc][0])*ratio+normBRAM[o_c+o_cc][3];
                         //std::cout << "writing " << output_element << "\n";
                     }
                     //std::cout << "writing after bnorm " << output_element << "\n";
-                    if (relu){ output_element = std::max(0.0f,output_element);}
+                    if (relu==1){ output_element = std::max(0.0f,output_element);}
                     //std::cout << " = " << output_element << "\n";
                     if (((o_c+o_cc) < oc) && ((o_d+d) < od) && ((o_y+y) < oy) && ((o_x+x) < ox)){
                         //printf("O: %f", output_element);

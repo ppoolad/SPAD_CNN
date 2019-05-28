@@ -35,17 +35,17 @@ void read_bias_to_output(
         float biasBRAM[MAX_OUTPUT_CHANNELS/TCO][TCO],
         int o_c,	//current output dimension index
         int bb,		//current batch index
-        const int od_limit,
-        const int oy_limit,
-        const int ox_limit);
+        int od_limit,
+        int oy_limit,
+        int ox_limit);
 void read_fullbias_to_output(
         float outputBRAM[TCO][TOD][TOY][TOX],
         float biasBRAM[MAX_OUTPUT_CHANNELS],
         int o_c,	//current output dimension index
         int bb,		//current batch index
-        const int od_limit,
-        const int oy_limit,
-        const int ox_limit);
+        int od_limit,
+        int oy_limit,
+        int ox_limit);
 
 void mem_read_weight(
         float * mem,            // global memory pointer
@@ -86,9 +86,9 @@ void mem_read_input(
         int o_d,	//current output dimension index
         int o_c,    //current output channel
         int i_c,	//current input  channel index
-        const int oy_limit,
-        const int ox_limit,
-        const int od_limit);
+        int oy_limit,
+        int ox_limit,
+        int od_limit);
 
 void mem_read_input_transpose(
         float * mem,            // global memory pointer
@@ -106,9 +106,9 @@ void mem_read_input_transpose(
         int o_d,	//current output dimension index
         int o_c,    //current output channel
         int i_c,	//current input  channel index
-        const int oy_limit,
-        const int ox_limit,
-        const int od_limit);
+        int oy_limit,
+        int ox_limit,
+        int od_limit);
 
 void conv_compute(
         float outputBRAM[TCO][TOD][TOY][TOX],
@@ -116,9 +116,9 @@ void conv_compute(
         float weightBRAM[TCO][TCI][MAX_KERNEL_SIZE*MAX_KERNEL_SIZE*MAX_KERNEL_SIZE],
         const int k,
         const int s,
-        const int od_limit,
-        const int oy_limit,
-        const int ox_limit,
+        int od_limit,
+        int oy_limit,
+        int ox_limit,
         int o_c, //for test
         int i_c,
         int o_x,
@@ -139,9 +139,9 @@ void mem_write(
         int o_d,
         int o_y,
         int o_x,
-        const int od_limit,
-        const int oy_limit,
-        const int ox_limit,
+        int od_limit,
+        int oy_limit,
+        int ox_limit,
         int bnorm,
         int relu);
 
@@ -160,9 +160,9 @@ void mem_write_fullnorm(
         int o_d,
         int o_y,
         int o_x,
-        const int od_limit,
-        const int oy_limit,
-        const int ox_limit,
+        int od_limit,
+        int oy_limit,
+        int ox_limit,
         int bnorm,
         int relu);
 #endif //SPAD_CNN_CONV3D_FUNCTIONS_H
