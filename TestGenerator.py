@@ -38,22 +38,22 @@ normedrelu_var = nn.functional.relu(normed_var)
 normedrelu_var.numpy().astype('float32').tofile('data/SPAD/batch_0/conv3/conv30out')
 
 #######################################################################
-input_var = Variable(torch.randn(1, 5, 32, 32, 32))
+input_var = Variable(torch.randn(1, 1, 32, 32, 32))
 input_var.cpu().numpy().astype('float32').tofile('testinput')
 a = input_var.numpy()
-filter_var = Variable(torch.randn(1, 5, 5, 5, 5))
+filter_var = Variable(torch.randn(1, 1, 3, 3, 3))
 filter_var.cpu().numpy().astype('float32').tofile('testfilters')
 w = filter_var.numpy()
 
 biases_var = Variable(torch.ones(1))
 biases_var.cpu().numpy().astype('float32').tofile('testbiases')
 b = biases_var.numpy()
-output_var = nn.functional.conv3d(input_var,filter_var,bias=biases_var, padding = 2)
+output_var = nn.functional.conv3d(input_var,filter_var,bias=biases_var, padding = 1)
 output_var.cpu().numpy().astype('float32').tofile('testoutput')
-run_mean = [5, 4, 3, 2, 1]
-run_var = [1, 2, 3, 4, 5]
-gamma = [1, 2, 1, 2, 1]
-beta = [0.5, 0.4, 0.3, 0.2, 0.1]
+run_mean = 5
+run_var = 1
+gamma = 1
+beta = 0.5
 bnormpar = torch.tensor([run_mean, run_var, gamma, beta])
 
 bnormpar.numpy().astype('float32').tofile('bnormparams');
