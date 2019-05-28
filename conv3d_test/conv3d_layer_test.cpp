@@ -108,7 +108,7 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
 
     // Run Accelerator
     #ifdef HW_TEST
-    hw_conv3d_layer(HW_CTRL_ADDR, dma_input, 0, 0 ,sizeof(float)*512*1024,
+    hw_conv3d_layer(HW_CTRL_ADDR, dma_input, 0, sizeof(float)*num_inputs ,sizeof(float)*512*1024,
                   b, od, ox, oy, oc, ic, id, ix, iy, s, k,pad,1,1);
     #else
     conv3d_layer(dma_input, 0, sizeof(float)*num_inputs ,sizeof(float)*512*1024,
