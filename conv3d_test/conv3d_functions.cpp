@@ -367,21 +367,21 @@ void conv_compute(
                         ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
                         for (int j = 0; j < k; j++) {
                             ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
-                            float outarray[TCO];
+                            //float outarray[TCO];
                             #pragma HLS pipeline II=1
-                            #pragma HLS array_partition variable outarray complete
-                            for (int q = 0; q < TCO; q++)
-                            {
-                                #pragma HLS unroll
-                                outarray[q] = outputBRAM[q][d][y][x];
-                            }
+                            // #pragma HLS array_partition variable outarray complete
+                            // for (int q = 0; q < TCO; q++)
+                            // {
+                            //     #pragma HLS unroll
+                            //     outarray[q] = outputBRAM[q][d][y][x];
+                            // }
                             
                             
                              for (int o_cc = 0; o_cc < TCO; o_cc++) {
                                 #pragma HLS unroll
                                 //#pragma HLS dependence variable=inputBRAM inter false
                                 //#pragma HLS dependence variable=weightBRAM inter false
-                               //#pragma HLS dependence variable=outputBRAM inter FALSE
+                               #pragma HLS dependence variable=outputBRAM inter FALSE
                                 //#pragma HLS pipeline
                                 float mul1_1 = 0;
                                 //#pragma HLS array_partition variable mul1_1 complete
@@ -465,8 +465,8 @@ void conv_compute(
                                 //mul3_1 = mul2_1;
                                 //float prev = outputBRAM[o_cc][d][y][x];
                                 //std::cout << "writing to [" << o_cc << "][" << d << "][" << y << "][" << x << "]\n";
-                                //outputBRAM[o_cc][d][y][x] += mul3_1;
-                                outputBRAM[o_cc][d][y][x] = outarray[o_cc] + mul3_1;
+                                outputBRAM[o_cc][d][y][x] += mul3_1;
+                                //outputBRAM[o_cc][d][y][x] = outarray[o_cc] + mul3_1;
                                 // outputBRAM[1][d][y][x] += mul1_1[1];
                                 // outputBRAM[2][d][y][x] += mul1_1[2];
                                 // outputBRAM[3][d][y][x] += mul1_1[3];
