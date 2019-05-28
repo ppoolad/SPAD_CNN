@@ -108,10 +108,10 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
 
     // Run Accelerator
     #ifdef HW_TEST
-    hw_conv3d_layer(HW_CTRL_ADDR, dma_input, sizeof(float)*(num_biases + num_weights + num_bnormparams), 0 ,sizeof(float)*(b*num_inputs+num_biases + num_weights + num_bnormparams),
+    hw_conv3d_layer(HW_CTRL_ADDR, dma_input, sizeof(float)*7168, 0 ,sizeof(float)*128*1024,
                   b, od, ox, oy, oc, ic, id, ix, iy, s, k,pad,1,1);
     #else
-    conv3d_layer(dma_input, sizeof(float)*(num_biases + num_weights + num_bnormparams), 0 ,sizeof(float)*(b*num_inputs+num_biases + num_weights + num_bnormparams),
+    conv3d_layer(dma_input, sizeof(float)*7168, 0 ,sizeof(float)*128*1024,
                b, od, ox, oy, oc, ic, id, ix, iy, s, k , pad,1,1);
     #endif
 
@@ -151,7 +151,7 @@ int main(int argc, char** argv)
       //static float dma_in[MAX_WEIGHT_SIZE+5*MAX_OUTPUT_CHANNELS+MAX_CONV_INPUT+MAX_CONV_OUTPUT];
       float* dma_in;
       try{
-        dma_in = new float[MAX_WEIGHT_SIZE+5*MAX_OUTPUT_CHANNELS+MAX_CONV_INPUT+MAX_CONV_OUTPUT];
+        dma_in = new float[128*1024*1024 + 4096];
       }
       catch (std::bad_alloc& ba){
           std::cerr << "bad_alloc caught: " << ba.what() << '\n';
@@ -201,7 +201,7 @@ int main(int argc, char** argv)
         std::cout << "Read Error";
         return 1;
       }
-      ptr += bsize;
+      ptr += 7168;
       /*Reading Inputs*/
       if (myreadFile(imageDir_current + "/conv30out", ptr, isize, 1*MAX_CONV_INPUT )) {
       //if (myreadFile(imageDir_current + "/spadfile", ptr, isize, 1*MAX_CONV_INPUT )) {
@@ -218,7 +218,7 @@ int main(int argc, char** argv)
     }
   //}
 
-
+  int output_offset = 128*1024;
   if(readOutputBatches("/conv31out",imageRootDir, batch_layer_params, numBatches, layer, 1*MAX_CONV_OUTPUT, gold_outputs_vec, CONV3D)) return 1;
   //if(readOutputBatches("/conv00out",imageRootDir, batch_layer_params, numBatches, layer, 1*MAX_CONV_OUTPUT, gold_outputs_vec, CONV3D)) return 1;
 
@@ -239,7 +239,7 @@ int main(int argc, char** argv)
   auto end = chrono::system_clock::now(); 
   auto elapsed = end - start;
 
-  float avg_error = get_mean_squared_error_and_write_file(dma_input_vec, gold_outputs_vec, numBatches, batch_layer_params, imageRootDir, layer, CONV3D);
+  float avg_error = get_mean_squared_error_and_write_file_of(dma_input_vec, output_offset, gold_outputs_vec, numBatches, batch_layer_params, imageRootDir, layer, CONV3D);
 
   for (int h = 0; h < dma_input_vec.size(); h++)
       delete [] dma_input_vec[h];

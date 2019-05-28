@@ -19,7 +19,7 @@
 #include "util/shared.h"
 #include "xconv3d_layer_hw.h"
 
-#define MAP_SIZE (1024UL*1024UL)
+#define MAP_SIZE (1024UL*1024UL*512UL)
 
 void hw_conv3d_layer(int target,             // control register target
                     float * mem,            // global memory pointer
@@ -84,7 +84,7 @@ void hw_conv3d_layer(int target,             // control register target
   char* in_buffer = NULL;
   char* allocated = NULL;
   // Size to DMA in
-  int size = oc*ic*k*k*k+5*oc+ic*id*ix*iy*b;
+  int size = 7168 + ic*id*ix*iy;//oc*ic*k*k*k+5*oc+ic*id*ix*iy*b;
   int wait_time = 0;
  
   // Create aligned memory alloc for DMA (should do this during initial read) 

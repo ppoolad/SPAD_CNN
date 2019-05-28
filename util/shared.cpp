@@ -356,6 +356,95 @@ float get_mean_squared_error_and_write_file(vector<float *> mem, vector <float *
 
 }
 
+
+float get_mean_squared_error_and_write_file_of(vector<float *> mem, int output_offset, vector <float *> golden_output, int numBatches, vector<map<string,int> >batch_layer_params, string imageRootDir, string layer, int layerType){
+  
+
+  float total = 0.0f;
+
+  ostringstream ss;
+
+  int totalNumOutputs = 0;
+
+  for(int i=0; i<numBatches; i++){
+    int b = batch_layer_params[i]["batch_size"];
+
+    int num_inputs;
+    int num_biases;
+    int num_weights;
+    int num_outputs;
+    int num_bnormpars;
+    float * outputs;
+    if(layerType == CONV){
+    	num_inputs = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_width"]*
+        batch_layer_params[i]["input_height"];
+    	num_biases = batch_layer_params[i]["output_dim"];
+    	num_weights = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["output_dim"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
+    	num_outputs = batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*batch_layer_params[i]["output_height"];
+    	totalNumOutputs += b*num_outputs;
+    	outputs = mem[i] + b*num_inputs+num_biases+num_weights;
+    }
+    else if(layerType == CONV3D || layerType == CONV3DT){
+    	num_inputs = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_width"]*
+        batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_channel"];
+    	num_biases = batch_layer_params[i]["output_channel"];
+        num_bnormpars = batch_layer_params[i]["output_channel"]*4;
+    	num_weights = batch_layer_params[i]["input_channel"]*batch_layer_params[i]["output_channel"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"]*batch_layer_params[i]["kernel_size"];
+    	num_outputs = batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*batch_layer_params[i]["output_height"]*batch_layer_params[i]["output_channel"];
+    	totalNumOutputs += b*num_outputs;
+    	outputs = mem[i] + output_offset;
+    }
+    else if(layerType == FC){
+    	num_inputs = batch_layer_params[i]["input_dim"];
+    	num_biases = batch_layer_params[i]["output_dim"];
+    	num_weights = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["output_dim"];
+    	num_outputs = batch_layer_params[i]["output_dim"];
+    	totalNumOutputs += b*num_outputs;
+    	outputs = mem[i] + b*num_inputs+num_biases+num_weights;
+      //std::cout << "id: " << num_inputs << " b: "<< num_biases << " nw: " << num_weights << " od: " << num_outputs;
+
+    }
+    else { //POOL
+    	num_inputs = batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_width"]*
+        batch_layer_params[i]["input_height"];
+    	num_outputs = batch_layer_params[i]["output_dim"]*batch_layer_params[i]["output_width"]*batch_layer_params[i]["output_height"];
+    	totalNumOutputs += b*num_outputs;
+    	outputs = mem[i] + b*num_inputs;
+
+    }
+    for (int j = 0; j < b*num_outputs; j++)
+    {
+      float err = fabs(outputs[j] - golden_output[i][j]);
+// #ifdef PRINT
+//       int b1 = batch_layer_params[i]["output_dim"];
+//       int w4 = batch_layer_params[i]["output_width"];
+//       int h3 = batch_layer_params[i]["output_height"];
+//       int c2 = batch_layer_params[i]["output_channel"];
+//       if (err > 0.1) {
+//           int w4_2 = j%(w4);
+//           int h3_2 = (j/w4) % (h3);
+//           int c2_2 = (j/(w4*h3)) % c2;
+//           std::cout << "output[" << c2_2 << "][" << h3_2 << "][" << w4_2 << "] = "<< outputs[j] << "VS" << golden_output[i][j]<< '\n';
+//       }
+// #endif
+      
+      total += err*err;
+      //printf("HW: %.6f GOLD:%.6f\n",fabs(outputs[j]),golden_output[i][j] );
+    }
+	//std::cout << "hw: "<< fabs(outputs[1] << "gold "<<golden_output[i][1]<<"\n";
+	
+    ss.str("");
+    ss << i;
+    string imageDir = imageRootDir + ss.str() + "/" + layer + "/dma_out"; // not for test "dma_out"
+    char * buffer = (char *)outputs;
+    ofstream myFile(imageDir.c_str(), ios::out | ios::binary);
+    myFile.write(buffer, b*num_outputs*sizeof(float));    
+    myFile.close();
+  }
+    return total/(totalNumOutputs);
+
+}
+
 void write_int(volatile void* map_base, int offset, int value)
 {
   volatile void* virt_addr = (volatile void*)((char*)map_base + offset); 
