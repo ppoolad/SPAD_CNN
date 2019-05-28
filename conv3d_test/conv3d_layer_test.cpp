@@ -108,10 +108,10 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
 
     // Run Accelerator
     #ifdef HW_TEST
-    hw_conv3d_layer(HW_CTRL_ADDR, dma_input, sizeof(float)*7168, 0 ,sizeof(float)*512*1024,
+    hw_conv3d_layer(HW_CTRL_ADDR, dma_input, 0, 0 ,sizeof(float)*512*1024,
                   b, od, ox, oy, oc, ic, id, ix, iy, s, k,pad,1,1);
     #else
-    conv3d_layer(dma_input, sizeof(float)*7168, 0 ,sizeof(float)*512*1024,
+    conv3d_layer(dma_input, 0, sizeof(float)*num_inputs ,sizeof(float)*512*1024,
                b, od, ox, oy, oc, ic, id, ix, iy, s, k , pad,1,1);
     #endif
 
@@ -170,6 +170,14 @@ int main(int argc, char** argv)
       int isize = batch_layer_params[i]["input_channel"]*batch_layer_params[i]["batch_size"]*batch_layer_params[i]["input_dim"]*batch_layer_params[i]["input_height"]*batch_layer_params[i]["input_width"];
       string fname;
       /*Reading weights*/
+
+      /*Reading Inputs*/
+      if (myreadFile(imageDir_current + "/conv30out", ptr, isize, 1*MAX_CONV_INPUT )) {
+      //if (myreadFile(imageDir_current + "/spadfile", ptr, isize, 1*MAX_CONV_INPUT )) {
+              std::cout << "Read Error";
+              return 1;
+      }
+      ptr += isize;
       if (myreadFile(imageDir_current + "/conv3.3.weight", ptr, wsize, MAX_WEIGHT_SIZE )) {
         std::cout << "Read Error";
         return 1;
@@ -201,13 +209,7 @@ int main(int argc, char** argv)
         std::cout << "Read Error";
         return 1;
       }
-      ptr = dma_in + 7168;
-      /*Reading Inputs*/
-      if (myreadFile(imageDir_current + "/conv30out", ptr, isize, 1*MAX_CONV_INPUT )) {
-      //if (myreadFile(imageDir_current + "/spadfile", ptr, isize, 1*MAX_CONV_INPUT )) {
-              std::cout << "Read Error";
-              return 1;
-      }
+
 
       dma_input_vec.push_back(dma_in);
       string outdir = imageRootDir + ss.str() + "/" + layer + "/" +"created_dma_in";

@@ -19,7 +19,7 @@
 #include "util/shared.h"
 #include "xconv3d_layer_hw.h"
 
-#define MAP_SIZE (1024UL*1024UL*512UL)
+#define MAP_SIZE (1024UL*1024UL)
 
 void hw_conv3d_layer(int target,             // control register target
                     float * mem,            // global memory pointer
