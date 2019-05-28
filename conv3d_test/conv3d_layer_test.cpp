@@ -110,10 +110,10 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
     #ifdef HW_TEST
     std::cout << "Beginning HW test" << std::endl;
     std::cout << "CTRL_ADDR: " << HW_CTRL_ADDR << " mem ptr: " << dma_input << " iof: " << 0 << " pof: " << sizeof(float)*num_inputs << " of: " <<  sizeof(float)*512*1024 << std::endl;
-    hw_conv3d_layer(HW_CTRL_ADDR, dma_input, 0, sizeof(float)*num_inputs ,sizeof(float)*512*1024,
+    hw_conv3d_layer(HW_CTRL_ADDR, dma_input, 0, sizeof(float)*num_inputs ,sizeof(float)*(num_inputs+5*num_biases+num_weights),
                   b, od, ox, oy, oc, ic, id, ix, iy, s, k,pad,1,1);
     #else
-    conv3d_layer(dma_input, 0, sizeof(float)*num_inputs ,sizeof(float)*512*1024,
+    conv3d_layer(dma_input, 0, sizeof(float)*num_inputs ,sizeof(float)*(num_inputs+5*num_biases+num_weights),
                b, od, ox, oy, oc, ic, id, ix, iy, s, k , pad,1,1);
     #endif
 
@@ -222,7 +222,7 @@ int main(int argc, char** argv)
     }
   //}
 
-  int output_offset = 512*1024;
+  // /int output_offset = sizeof(float)*(isize+5*bsize+wsize);
   if(readOutputBatches("/testnormreluoutput",imageRootDir, batch_layer_params, numBatches, layer, 1*MAX_CONV_OUTPUT, gold_outputs_vec, CONV3D)) return 1;
   //if(readOutputBatches("/conv00out",imageRootDir, batch_layer_params, numBatches, layer, 1*MAX_CONV_OUTPUT, gold_outputs_vec, CONV3D)) return 1;
 
@@ -243,7 +243,7 @@ int main(int argc, char** argv)
   auto end = chrono::system_clock::now(); 
   auto elapsed = end - start;
 
-  float avg_error = get_mean_squared_error_and_write_file_of(dma_input_vec, output_offset, gold_outputs_vec, numBatches, batch_layer_params, imageRootDir, layer, CONV3D);
+  float avg_error = get_mean_squared_error_and_write_file(dma_input_vec, gold_outputs_vec, numBatches, batch_layer_params, imageRootDir, layer, CONV3D);
 
   for (int h = 0; h < dma_input_vec.size(); h++)
       delete [] dma_input_vec[h];
