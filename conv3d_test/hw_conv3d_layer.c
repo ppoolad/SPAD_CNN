@@ -84,7 +84,8 @@ void hw_conv3d_layer(int target,             // control register target
   char* in_buffer = NULL;
   char* allocated = NULL;
   // Size to DMA in
-  int size = 7168 + ic*id*ix*iy;//oc*ic*k*k*k+5*oc+ic*id*ix*iy*b;
+  int size = oc*ic*k*k*k+5*oc+ic*id*ix*iy;
+  printf("SIZE= %d\n", size);
   int wait_time = 0;
  
   // Create aligned memory alloc for DMA (should do this during initial read) 
