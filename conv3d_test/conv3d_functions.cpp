@@ -370,7 +370,7 @@ void conv_compute(
 
                             //#pragma HLS pipeline II=1
                              for (int o_cc = 0; o_cc < TCO; o_cc++) {
-                                //#pragma HLS unroll
+                                #pragma HLS unroll
                                 //#pragma HLS dependence variable=inputBRAM inter false
                                 //#pragma HLS dependence variable=weightBRAM inter false
                                 //#pragma HLS dependence variable=outputBRAM inter FALSE
@@ -380,6 +380,10 @@ void conv_compute(
                                 float mul1_2 = 0;
                                 float mul1_3 = 0;
                                 float mul1_4 = 0;
+                                float mul1_5 = 0;
+                                float mul1_6 = 0;
+                                float mul1_7 = 0;
+                                float mul1_8 = 0;
                                 float mul2_1 = 0;
                                 float mul2_2 = 0;
                                 float mul3_1 = 0;
@@ -393,9 +397,14 @@ void conv_compute(
                                 mul1_2 =            inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j] ;
                                 mul1_3 =            inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j] ;
                                 mul1_4 =            inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j] ;
+                                mul1_5 =            inputBRAM[4][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][4][l*k*k+i*k+j] ;
+                                mul1_6 =            inputBRAM[5][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][5][l*k*k+i*k+j] ;
+                                mul1_7 =            inputBRAM[6][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][6][l*k*k+i*k+j] ;
+                                mul1_8 =            inputBRAM[7][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][7][l*k*k+i*k+j] ;
 
-                                mul2_1 = mul1_1 + mul1_2;
-                                mul2_2 = mul1_3 + mul1_4;
+
+                                mul2_1 = mul1_1 + mul1_2 + mul1_3 + mul1_4;
+                                mul2_2 = mul1_5 + mul1_6 + mul1_7 + mul1_8;
                                 mul3_1 = mul2_1 + mul2_2;
 
 
