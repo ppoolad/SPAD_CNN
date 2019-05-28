@@ -368,14 +368,15 @@ void conv_compute(
                         for (int j = 0; j < k; j++) {
                             ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
 
-                            #pragma HLS pipeline II=1
+                            //#pragma HLS pipeline II=1
                              for (int o_cc = 0; o_cc < TCO; o_cc++) {
-                                 #pragma HLS unroll
-                                #pragma HLS dependence variable=inputBRAM inter false
-                                #pragma HLS dependence variable=weightBRAM inter false
-                                #pragma HLS dependence variable=outputBRAM inter FALSE
+                                //#pragma HLS unroll
+                                //#pragma HLS dependence variable=inputBRAM inter false
+                                //#pragma HLS dependence variable=weightBRAM inter false
+                                //#pragma HLS dependence variable=outputBRAM inter FALSE
+                                #pragma HLS pipeline
                                 float mul1_1 = 0;
-                                #pragma HLS array_partition variable mul1_1 complete
+                                //#pragma HLS array_partition variable mul1_1 complete
                                 float mul1_2 = 0;
                                 float mul1_3 = 0;
                                 float mul1_4 = 0;

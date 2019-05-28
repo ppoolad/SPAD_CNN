@@ -21,7 +21,7 @@
 #define NUM_BNORM_PARAMS    4
 
 //tile for channels  // <!!!>if changing this change Tn
-#define TCO     8
+#define TCO     1
 // keep this 4 other wise change conv_compute
 #define TCI     4
 //tile for input  dimension
