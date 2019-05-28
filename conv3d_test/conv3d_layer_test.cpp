@@ -201,7 +201,7 @@ int main(int argc, char** argv)
         std::cout << "Read Error";
         return 1;
       }
-      ptr += 7168;
+      ptr = dma_in + 7168;
       /*Reading Inputs*/
       if (myreadFile(imageDir_current + "/conv30out", ptr, isize, 1*MAX_CONV_INPUT )) {
       //if (myreadFile(imageDir_current + "/spadfile", ptr, isize, 1*MAX_CONV_INPUT )) {
