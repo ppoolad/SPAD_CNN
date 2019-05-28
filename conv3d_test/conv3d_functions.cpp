@@ -478,32 +478,32 @@ void conv_compute(
     }
 }
 
-typedef float myDataType;
-static myDataType adder_tree(myDataType window0[TCO])
-{
-#pragma HLS PIPELINE
-	myDataType window1[TCO/2] = {0.0};
-#pragma HLS ARRAY_PARTITION variable=window1 complete
-//#pragma HLS RESOURCE variable=window1 core=FAddSub_nodsp
-	myDataType window2[TCO/4] = {0.0};
-#pragma HLS ARRAY_PARTITION variable=window2 complete
+// typedef float myDataType;
+// static myDataType adder_tree(myDataType window0[TCO])
+// {
+// #pragma HLS PIPELINE
+// 	myDataType window1[TCO/2] = {0.0};
+// #pragma HLS ARRAY_PARTITION variable=window1 complete
+// //#pragma HLS RESOURCE variable=window1 core=FAddSub_nodsp
+// 	myDataType window2[TCO/4] = {0.0};
+// #pragma HLS ARRAY_PARTITION variable=window2 complete
 
 
-	myDataType result = 0.0;
-	L1: for(int x=0; x<TCO/2; x++)
-    {
-    	 window1[x] = window0[2*x] +  window0[1+2*x];
-	}
-	L2: for(int x=0; x<TCO/4; x++)
-    {
-    	 window2[x] = window1[x] +  window1[TCO/4+x];
+// 	myDataType result = 0.0;
+// 	L1: for(int x=0; x<TCO/2; x++)
+//     {
+//     	 window1[x] = window0[2*x] +  window0[1+2*x];
+// 	}
+// 	L2: for(int x=0; x<TCO/4; x++)
+//     {
+//     	 window2[x] = window1[x] +  window1[TCO/4+x];
 
-	}
+// 	}
 
 
-	result = window2[0] + window2[1];
-	return result;
-}
+// 	result = window2[0] + window2[1];
+// 	return result;
+// }
 
 /////// writng memory //////////////////////
 void mem_write(
