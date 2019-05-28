@@ -109,7 +109,7 @@ static int run_single_test(string imageDir, map<string, int> layer_params, float
     // Run Accelerator
     #ifdef HW_TEST
     std::cout << "Beginning HW test" << std::endl;
-    std::cout << "CTRL_ADDR: " << HW_CTRL_ADDR << " mem ptr: " << dma_input << " iof: " << 0 << " pof: " << sizeof(float)*num_inputs << " of: " <<  sizeof(float)*512*1024 << std::endl;
+    std::cout << "CTRL_ADDR: " << HW_CTRL_ADDR << " mem ptr: " << dma_input << " iof: " << 0 << " pof: " << sizeof(float)*num_inputs << " of: " << sizeof(float)*(num_inputs+5*num_biases+num_weights) << std::endl;
     hw_conv3d_layer(HW_CTRL_ADDR, dma_input, 0, sizeof(float)*num_inputs ,sizeof(float)*(num_inputs+5*num_biases+num_weights),
                   b, od, ox, oy, oc, ic, id, ix, iy, s, k,pad,1,1);
     #else
