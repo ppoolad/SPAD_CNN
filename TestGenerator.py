@@ -58,10 +58,10 @@ bnormpar = torch.tensor([run_mean, run_var, gamma, beta])
 
 bnormpar.numpy().astype('float32').tofile('bnormparams');
 
-normed_var = nn.functional.batch_norm(output_var,bnormpar[0][0].reshape(1),
-                                      bnormpar[1][0].reshape(1),
-                                      weight=bnormpar[2][0].reshape(1),
-                                      bias=bnormpar[3][0].reshape(1))
+normed_var = nn.functional.batch_norm(output_var,bnormpar[0].reshape(1),
+                                      bnormpar[1].reshape(1),
+                                      weight=bnormpar[2].reshape(1),
+                                      bias=bnormpar[3].reshape(1))
 
 normed_var.cpu().numpy().astype('float32').tofile('testnormoutput')
 
@@ -70,7 +70,7 @@ normedrelu_var = nn.functional.relu(normed_var)
 normedrelu_var.cpu().numpy().astype('float32').tofile('testnormreluoutput')
 
 output = normedrelu_var.numpy()
-
+oraw= output_var.numpy()
 
 
 

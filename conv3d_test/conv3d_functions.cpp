@@ -381,7 +381,7 @@ void conv_compute(
                                 #pragma HLS unroll
                                 //#pragma HLS dependence variable=inputBRAM inter false
                                 //#pragma HLS dependence variable=weightBRAM inter false
-                               #pragma HLS dependence variable=outputBRAM inter FALSE
+                               #pragma HLS dependence variable=outputBRAM inter WAR FALSE
                                 //#pragma HLS pipeline
                                 float mul1_1 = 0;
                                 //#pragma HLS array_partition variable mul1_1 complete
