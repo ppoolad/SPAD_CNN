@@ -387,7 +387,7 @@ void conv_compute(
                                 //#pragma HLS pipeline
                                 float mul1_1 = outputBRAM[o_cc][d][y][x];
                                 //#pragma HLS array_partition variable mul1_1 complete
-                                //float mul1_2 = 0;
+                                float mul1_2 = 0;
                                 float mul1_3 = 0;
                                 //float mul1_4 = 0;
                                 float mul1_5 = 0;
@@ -403,8 +403,8 @@ void conv_compute(
                                 //#pragma HLS RESOURCE variable=mul1_4 core=FMul_meddsp
                                 //#pragma HLS RESOURCE variable=mul2_1 core=FAddSub_nodsp
                                 //#pragma HLS RESOURCE variable=mul2_2 core=FAddSub_nodsp
-                                mul1_1 =            inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][0][l*k*k+i*k+j] +
-                                                    inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j] ;
+                                mul1_1 +=           inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][0][l*k*k+i*k+j];
+                                mul1_2 =            inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j] ;
                                 mul1_3 =            inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j] +
                                                     inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j] ;
                                 mul1_5 =            inputBRAM[4][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][4][l*k*k+i*k+j] +
