@@ -357,17 +357,27 @@ void conv_compute(
     //std :: cout << "read "<<  weightBRAM[0][0][0] << " and " << inputBRAM[0][0][0][0] << "\n";
     for (int d = 0; d < od_limit; d++) {
         ADD_PRAGMA(HLS loop_tripcount max = TOD)
+#pragma HLS dependence variable=outputBRAM inter true
+
         for (int y = 0; y < oy_limit; y++) {
             ADD_PRAGMA(HLS loop_tripcount max = TOY)
+#pragma HLS dependence variable=outputBRAM inter true
+
             for (int x = 0; x < ox_limit; x++) {
                 ADD_PRAGMA(HLS loop_tripcount max = TOX)
+#pragma HLS dependence variable=outputBRAM inter true
+
                 for (int l = 0; l < k; l++) {
                     ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
+#pragma HLS dependence variable=outputBRAM inter true
+
                     for (int i = 0; i < k; i++) {
                         ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
+#pragma HLS dependence variable=outputBRAM inter true
+
                         for (int j = 0; j < k; j++) {
                             ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
-                            #pragma HLS loop_flatten off
+#pragma HLS dependence variable=outputBRAM inter true
                             //float outarray[TCO];
                             #pragma HLS pipeline II=1
                             // #pragma HLS array_partition variable outarray complete
@@ -383,7 +393,7 @@ void conv_compute(
                                 //#pragma loop_flatten off
                                 //#pragma HLS dependence variable=inputBRAM inter false
                                 //#pragma HLS dependence variable=weightBRAM inter false
-                                #pragma HLS dependence variable=outputBRAM inter FALSE
+#pragma HLS dependence variable=outputBRAM inter FALSE
 								//#pragma HLS dependence variable=outputBRAM inter distance=8 true
                                 //#pragma HLS pipeline
                                 float mul1_1 = 0;//outputBRAM[o_cc][d][y][x];
@@ -396,7 +406,7 @@ void conv_compute(
                                 float mul1_7 = 0;
                                 //float mul1_8 = 0;
                                 float mul2_1 = 0;
-                                float mul2_2 = 0;
+                                //float mul2_2 = 0;
                                 //float mul3_1 = 0;
                                 //#pragma HLS RESOURCE variable=mul1_1 core=FMul_meddsp
                                 //#pragma HLS RESOURCE variable=mul1_2 core=FMul_meddsp
@@ -468,7 +478,7 @@ void conv_compute(
                                 //mul3_1 = mul2_1;
                                 //float prev = outputBRAM[o_cc][d][y][x];
                                 //std::cout << "writing to [" << o_cc << "][" << d << "][" << y << "][" << x << "]\n";
-                                outputBRAM[o_cc][d][y][x] += mul2_2;
+                                outputBRAM[o_cc][d][y][x] += mul2_1;
                                 //outputBRAM[o_cc][d][y][x] = outarray[o_cc] + mul3_1;
                                 // outputBRAM[1][d][y][x] += mul1_1[1];
                                 // outputBRAM[2][d][y][x] += mul1_1[2];
