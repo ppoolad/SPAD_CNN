@@ -380,9 +380,10 @@ void conv_compute(
                             
                              for (int o_cc = 0; o_cc < TCO; o_cc++) {
                                 #pragma HLS unroll
+                                #pragma loop_flatten off
                                 //#pragma HLS dependence variable=inputBRAM inter false
                                 //#pragma HLS dependence variable=weightBRAM inter false
-                               #pragma HLS dependence variable=outputBRAM inter RAW FALSE
+                               #pragma HLS dependence variable=outputBRAM inter FALSE
                                 //#pragma HLS pipeline
                                 float mul1_1 = 0;
                                 //#pragma HLS array_partition variable mul1_1 complete
