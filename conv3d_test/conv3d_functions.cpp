@@ -367,6 +367,7 @@ void conv_compute(
                         ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
                         for (int j = 0; j < k; j++) {
                             ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
+                            #pragma HLS loop_flatten off
                             //float outarray[TCO];
                             #pragma HLS pipeline II=1
                             // #pragma HLS array_partition variable outarray complete
@@ -381,7 +382,7 @@ void conv_compute(
                                 #pragma HLS unroll
                                 //#pragma HLS dependence variable=inputBRAM inter false
                                 //#pragma HLS dependence variable=weightBRAM inter false
-                               #pragma HLS dependence variable=outputBRAM inter WAR FALSE
+                               #pragma HLS dependence variable=outputBRAM inter RAW FALSE
                                 //#pragma HLS pipeline
                                 float mul1_1 = 0;
                                 //#pragma HLS array_partition variable mul1_1 complete
