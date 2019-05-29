@@ -385,7 +385,7 @@ void conv_compute(
                                 //#pragma HLS dependence variable=weightBRAM inter false
                                //#pragma HLS dependence variable=outputBRAM inter FALSE
                                 //#pragma HLS pipeline
-                                float mul1_1 = 0;
+                                float mul1_1 = outputBRAM[o_cc][d][y][x];
                                 //#pragma HLS array_partition variable mul1_1 complete
                                 //float mul1_2 = 0;
                                 float mul1_3 = 0;
@@ -467,7 +467,7 @@ void conv_compute(
                                 //mul3_1 = mul2_1;
                                 //float prev = outputBRAM[o_cc][d][y][x];
                                 //std::cout << "writing to [" << o_cc << "][" << d << "][" << y << "][" << x << "]\n";
-                                outputBRAM[o_cc][d][y][x] += mul2_1;
+                                outputBRAM[o_cc][d][y][x] = mul2_1;
                                 //outputBRAM[o_cc][d][y][x] = outarray[o_cc] + mul3_1;
                                 // outputBRAM[1][d][y][x] += mul1_1[1];
                                 // outputBRAM[2][d][y][x] += mul1_1[2];
