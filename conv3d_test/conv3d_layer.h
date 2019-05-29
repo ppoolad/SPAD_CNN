@@ -25,7 +25,7 @@
 // keep this 4 other wise change conv_compute
 #define TCI     8
 //tile for input  dimension
-#define TOD		8
+#define TOD		16
 #define TOY		8
 #define TOX		8
 
