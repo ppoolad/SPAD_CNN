@@ -383,11 +383,12 @@ void conv_compute(
                                 //#pragma loop_flatten off
                                 //#pragma HLS dependence variable=inputBRAM inter false
                                 //#pragma HLS dependence variable=weightBRAM inter false
-                               //#pragma HLS dependence variable=outputBRAM inter FALSE
+                                #pragma HLS dependence variable=outputBRAM inter FALSE
+								//#pragma HLS dependence variable=outputBRAM inter distance=8 true
                                 //#pragma HLS pipeline
-                                float mul1_1 = outputBRAM[o_cc][d][y][x];
+                                float mul1_1 = 0;//outputBRAM[o_cc][d][y][x];
                                 //#pragma HLS array_partition variable mul1_1 complete
-                                float mul1_2 = 0;
+                                //float mul1_2 = outputBRAM[o_cc][d][y][x];
                                 float mul1_3 = 0;
                                 //float mul1_4 = 0;
                                 float mul1_5 = 0;
@@ -395,7 +396,7 @@ void conv_compute(
                                 float mul1_7 = 0;
                                 //float mul1_8 = 0;
                                 float mul2_1 = 0;
-                                //float mul2_2 = 0;
+                                float mul2_2 = 0;
                                 //float mul3_1 = 0;
                                 //#pragma HLS RESOURCE variable=mul1_1 core=FMul_meddsp
                                 //#pragma HLS RESOURCE variable=mul1_2 core=FMul_meddsp
@@ -403,8 +404,8 @@ void conv_compute(
                                 //#pragma HLS RESOURCE variable=mul1_4 core=FMul_meddsp
                                 //#pragma HLS RESOURCE variable=mul2_1 core=FAddSub_nodsp
                                 //#pragma HLS RESOURCE variable=mul2_2 core=FAddSub_nodsp
-                                mul1_1 +=           inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][0][l*k*k+i*k+j];
-                                mul1_2 =            inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j] ;
+                                mul1_1 =           inputBRAM[0][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][0][l*k*k+i*k+j]+
+                                					inputBRAM[1][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][1][l*k*k+i*k+j] ;
                                 mul1_3 =            inputBRAM[2][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][2][l*k*k+i*k+j] +
                                                     inputBRAM[3][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][3][l*k*k+i*k+j] ;
                                 mul1_5 =            inputBRAM[4][s*d+l][s*y+i][s*x+j] * weightBRAM[o_cc][4][l*k*k+i*k+j] +
@@ -414,7 +415,7 @@ void conv_compute(
 
 
                                 mul2_1 = mul1_1 + mul1_3 + mul1_5 + mul1_7;
-                                //mul2_2 = mul1_5 + mul1_6 + mul1_7 + mul1_8;
+                                //mul2_2 = mul1_2 + mul2_1;
                                // mul3_1 = mul2_1 + mul2_2;
 
 
@@ -467,7 +468,7 @@ void conv_compute(
                                 //mul3_1 = mul2_1;
                                 //float prev = outputBRAM[o_cc][d][y][x];
                                 //std::cout << "writing to [" << o_cc << "][" << d << "][" << y << "][" << x << "]\n";
-                                outputBRAM[o_cc][d][y][x] = mul2_1;
+                                outputBRAM[o_cc][d][y][x] += mul2_2;
                                 //outputBRAM[o_cc][d][y][x] = outarray[o_cc] + mul3_1;
                                 // outputBRAM[1][d][y][x] += mul1_1[1];
                                 // outputBRAM[2][d][y][x] += mul1_1[2];
