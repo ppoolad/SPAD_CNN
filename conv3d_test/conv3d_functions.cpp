@@ -355,29 +355,25 @@ void conv_compute(
         int o_d)
 {
     //std :: cout << "read "<<  weightBRAM[0][0][0] << " and " << inputBRAM[0][0][0][0] << "\n";
-    for (int d = 0; d < od_limit; d++) {
-        ADD_PRAGMA(HLS loop_tripcount max = TOD)
-#pragma HLS dependence variable=outputBRAM inter true
 
-        for (int y = 0; y < oy_limit; y++) {
-            ADD_PRAGMA(HLS loop_tripcount max = TOY)
-#pragma HLS dependence variable=outputBRAM inter true
-
-            for (int x = 0; x < ox_limit; x++) {
-                ADD_PRAGMA(HLS loop_tripcount max = TOX)
-#pragma HLS dependence variable=outputBRAM inter true
-
-                for (int l = 0; l < k; l++) {
-                    ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
-#pragma HLS dependence variable=outputBRAM inter true
-
-                    for (int i = 0; i < k; i++) {
-                        ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
-#pragma HLS dependence variable=outputBRAM inter true
-
-                        for (int j = 0; j < k; j++) {
-                            ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
-#pragma HLS dependence variable=outputBRAM inter true
+    for (int l = 0; l < k; l++) {
+        ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
+//#pragma HLS dependence variable=outputBRAM inter true
+        for (int i = 0; i < k; i++) {
+            ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
+//#pragma HLS dependence variable=outputBRAM inter true
+            for (int j = 0; j < k; j++) {
+                ADD_PRAGMA(HLS loop_tripcount max = MAX_KERNEL_SIZE)
+//            #pragma HLS dependence variable=outputBRAM inter true
+                for (int d = 0; d < od_limit; d++) {
+                    ADD_PRAGMA(HLS loop_tripcount max = TOD)
+//            #pragma HLS dependence variable=outputBRAM inter true
+                    for (int y = 0; y < oy_limit; y++) {
+                        ADD_PRAGMA(HLS loop_tripcount max = TOY)
+//            #pragma HLS dependence variable=outputBRAM inter true
+                        for (int x = 0; x < ox_limit; x++) {
+                            ADD_PRAGMA(HLS loop_tripcount max = TOX)
+            //#pragma HLS dependence variable=outputBRAM inter true
                             //float outarray[TCO];
                             #pragma HLS pipeline II=1
                             // #pragma HLS array_partition variable outarray complete
